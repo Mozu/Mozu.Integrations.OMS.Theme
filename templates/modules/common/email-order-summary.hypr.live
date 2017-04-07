@@ -3,7 +3,7 @@
         <thead>
             <tr>
                 <td bgcolor="#666666" class="mz-ordersummary-header-product"><font color="#ffffff">{{ labels.product }}</font></td>
-                <td bgcolor="#666666" class="mz-ordersummary-header-orderId"><font color="#ffffff">Customer Care Order Id</font></td>
+                <td bgcolor="#666666" class="mz-ordersummary-header-orderId"><font color="#ffffff">{{ labels.customerCareOrderId }}</font></td>
                 <td bgcolor="#666666" class="mz-ordersummary-header-qty"><font color="#ffffff">{{ labels.qty }}</font></td>
                 <td bgcolor="#666666" class="mz-ordersummary-header-each"><font color="#ffffff">{{ labels.each }}</font></td>
                 <td bgcolor="#666666" class="mz-ordersummary-header-total"><font color="#ffffff">{{ labels.total }}</font></td>
@@ -26,13 +26,13 @@
                     </td>
                     <td>
                       {% with model.attributes|findwhere("fullyQualifiedName", "tenant~omsOrderIds") as omsIds %}
-                      {% for o in omsIds.values.0|split("|") %}
-                      {% with o|split(":") as list %}
-                      {% if list.1 == item.fulfillmentMethod and list.2 == item.fulfillmentLocationCode %}
-                      {{ list.0 }}
-                      {% endif %}
-                      {% endwith %}
-                      {% endfor %}
+                        {% for o in omsIds.values.0|split("|") %}
+                          {% with o|split(":") as list %}
+                            {% if list.1 == item.fulfillmentMethod and list.2 == item.fulfillmentLocationCode %}
+                            {{ list.0 }}
+                            {% endif %}
+                          {% endwith %}
+                        {% endfor %}
                       {% endwith %}
                     </td>
                     <td>{{ item.quantity }}</td>
