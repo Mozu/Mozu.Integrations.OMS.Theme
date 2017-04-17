@@ -30,7 +30,7 @@
   "poweredBy"                             : "Kibo Software, Inc.",
   "product"                               : "Product",
   "item"                                  : "Item",
-  "customerCareOrderId"                   : "Customer Care Order ID",
+  "customerCareNumber"                    : "Customer Care Number",
   "price"                                 : "Price",
   "qty"                                   : "Qty",
   "each"                                  : "Each",

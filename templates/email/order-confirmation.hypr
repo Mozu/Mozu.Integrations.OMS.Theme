@@ -1,65 +1,210 @@
 ﻿{% extends "email/email" %}
 
 {% block body-content %}
+{% with model.attributes|findwhere("fullyQualifiedName", "tenant~omsOrderIds") as omsIds %}
+{% with omsIds.values.0|split("|") as omsOrderIds %}
+
+
+
+
+
     <br>
     <p>{{ labels.orderWelcome }} {{ model.billingInfo.billingContact.firstName }} {{ model.billingInfo.billingContact.lastNameOrSurname }}!</p>
     <br>
     <p>{{ labels.orderConfirmationBlob1|string_format(siteContext.generalSettings.websiteName, domainName)|safe }}</p>
 
-    <table width="100%" cellpadding="1" width="100%">
-        <thead>
-            <tr>
-                <td bgcolor="#666666">
-                    <font color="#FFFFFF">{{ labels.orderDetails }}</font>
-                </td>
-            </tr>   
+    <div width="100%" style="background-color:#666666;padding:15px">
+      <font color="#FFFFFF" size="5">{{ labels.orderDetails }}</font>
+      <a href="http://{{ domainName }}/user/order-status"><font color="#FFFFFF" style="float:right">{{ labels.orderNumber }} {{ model.orderNumber }}</font></a>
+    </div>
+  </br>
+///////////////
+</br>
+{% if model.items|findwhere("fulfillmentMethod", "Ship") %}
+  <div width="100%" style="border-bottom: 1px solid #A3A3A3;padding:15px">
+    <font size="4">Shipping</font>
+  </div>
+  </br>
+{% for o in omsOrderIds %}
+  {% with o|split(":") as orderProps %}
+    {% if orderProps.1=="Ship" %}
+      <div width="100%" style="background-color:#666666;padding:5px;color:#FFFFFF;box-sizing: border-box;">
+        {{ labels.customerCareNumber}}: {{ orderProps.0 }}
+      </div>
+      <div style="border: 1px solid #c8c8c8; width:100%;box-sizing:border-box;padding:10px;">
+      <table class="" cellpadding="1" width="100%" style="border-bottom: 1px solid #A3A3A3">
+        <thead style="border-bottom: 1px solid #A3A3A3">
+          <tr>
+              <td class="mz-ordersummary-header-product" style="text-align:left;">{{ labels.product }}</td>
+              <td class="mz-ordersummary-header-qty">{{ labels.qty }}</td>
+              <td class="mz-ordersummary-header-each">{{ labels.each }}</td>
+              <td class="mz-ordersummary-header-total">{{ labels.total }}</td>
+          </tr>
         </thead>
-
         <tbody>
-            <tr>
-                <td>
-                    <b>{{ labels.orderNo }}</b>: {{ model.orderNumber }} <a href="http://{{ domainName }}/user/order-status">{{ labels.checkOrderStatus }}</a><br/><br/>
+       {% for item in model.items %}
+          {% if item.fulfillmentMethod == orderProps.1 and item.fulfillmentLocationCode %}
+          <tr>
+            <td align="left">{{ item.product.name }}</td>
+            <td>A thing</td>
+            <td>A thing</td>
+            <td>A thing</td>
+          </tr>
+          {% endif %}
+       {% endfor %}
+     </tbody>
+   </table>
+   <div width="100%" style="display:-webkit-flex;margin:10px">
+     <div style="width:50%"><b>{{ labels.shipTo }}</b>:<br><br>{% include "modules/common/email-address-summary" with model=model.fulfillmentInfo.fulfillmentContact %}</div>
+     <div style="width:50%"><b>{{ labels.shippingMethod }}</b>: {{ model.fulfillmentInfo.shippingMethodName }}</div>
+   </div>
+ </div>
+      {% endif %}
+    {% endwith %}
+ {% endfor %}
+{% endif %}
+
+</br>
+
+
+{% if model.items|findwhere("fulfillmentMethod", "Pickup") %}
+  <div width="100%" style="border-bottom: 1px solid #A3A3A3;padding:15px">
+    <font size="4">{{ labels.orderItemsPickup }}</font>
+  </div>
+</br>
+  {% for o in omsOrderIds %}
+    {% with o|split(":") as orderProps %}
+      {% if orderProps.1=="Pickup" %}
+      <div width="100%" style="background-color:#666666;padding:5px;color:#FFFFFF;box-sizing: border-box;">
+        {{ labels.customerCareNumber}}: {{ orderProps.0 }}
+      </div>
+      <div style="border: 1px solid #c8c8c8; width:100%;box-sizing:border-box;padding:10px;">
+      <table class="" cellpadding="1" width="100%" style="border-bottom: 1px solid #A3A3A3">
+        <thead style="border-bottom: 1px solid #A3A3A3">
+          <tr>
+              <td class="mz-ordersummary-header-product" style="text-align:left;">{{ labels.product }}</td>
+              <td class="mz-ordersummary-header-qty">{{ labels.qty }}</td>
+              <td class="mz-ordersummary-header-each">{{ labels.each }}</td>
+              <td class="mz-ordersummary-header-total">{{ labels.total }}</td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in model.items %}
+             {% if item.fulfillmentMethod == orderProps.1 and item.fulfillmentLocationCode %}
+             <tr>
+               <td align="left">{{ item.product.name }}</td>
+               <td>A thing</td>
+               <td>A thing</td>
+               <td>A thing</td>
+             </tr>
+             {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      <div width="100%" style="display:-webkit-flex;margin:10px">
+        <div style="width:50%"><b>{{ labels.shipTo }}</b>:<br><br>{% include "modules/common/email-address-summary" with model=model.fulfillmentInfo.fulfillmentContact %}</div>
+        <div style="width:50%"><b>{{ labels.shippingMethod }}</b>: {{ model.fulfillmentInfo.shippingMethodName }}</div>
+      </div>
+    </div>
+         {% endif %}
+       {% endwith %}
+    {% endfor %}
+   {% endif %}
+
+</br>
+//////////
+
+   </br>
+     <div width="100%" style="background-color:#666666;padding:5px;color:#FFFFFF;box-sizing: border-box;">
+       Customer Care Number: 123456777889
+     </div>
+     <div style="border: 1px solid #c8c8c8; width:100%;box-sizing:border-box;padding:10px;">
+     <table class="" cellpadding="1" width="100%" style="border-bottom: 1px solid #A3A3A3">
+       <thead style="border-bottom: 1px solid #A3A3A3">
+         <tr>
+             <td class="mz-ordersummary-header-product" style="text-align:left;">{{ labels.product }}</td>
+             <td class="mz-ordersummary-header-qty">{{ labels.qty }}</td>
+             <td class="mz-ordersummary-header-each">{{ labels.each }}</td>
+             <td class="mz-ordersummary-header-total">{{ labels.total }}</td>
+         </tr>
+       </thead>
+       <tbody>
+         <tr>
+           <td align="left">A thing</td>
+           <td>A thing</td>
+           <td>A thing</td>
+           <td>A thing</td>
+         </tr><tr>
+           <td align="left">A thing</td>
+           <td>A thing</td>
+           <td>A thing</td>
+           <td>A thing</td>
+         </tr><tr>
+           <td align="left">A thing</td>
+           <td>A thing</td>
+           <td>A thing</td>
+           <td>A thing</td>
+         </tr>
+       </tbody>
+
+     </table>
+     <div width="100%" style="display:-webkit-flex;margin:10px">
+       <div style="width:50%"><b>{{ labels.shipTo }}</b>:<br><br>{% include "modules/common/email-address-summary" with model=model.fulfillmentInfo.fulfillmentContact %}</div>
+       <div style="width:50%"><b>{{ labels.shippingMethod }}</b>: {{ model.fulfillmentInfo.shippingMethodName }}</div>
+     </div>
+   </div>
+
+
+
+
+  </br>  </br>  </br>  </br>  </br>
+                  {% comment %} ///Include the following in each order section:
                     <b>{{ labels.shipTo }}</b>:<br><br>{% include "modules/common/email-address-summary" with model=model.fulfillmentInfo.fulfillmentContact %}<br><br>
                     <b>{{ labels.shippingMethod }}</b>: {{ model.fulfillmentInfo.shippingMethodName }}<br>
-                </td>
-            </tr>
+                    {% endcomment %}
 
-			{% ifnotequal model.total 0 %}
-           <tr>
+            {% comment %}
+            Move the following to the bottom of the email in 'additional information', after email order summary
+            {% ifnotequal model.total 0 %}
+                 <tr>
+                      <td>
+                          <b>{{ labels.billingInformation }}</b>:<br><br>{% include "modules/common/email-address-summary" with model=model.billingInfo.billingContact %}<br><br>
+                              {% if model.billingInfo.paymentType == "CreditCard" %}
+                                  <b>{{ labels.paymentMethod }}</b>: {{ model.billingInfo.card.paymentOrCardType }} {{ model.billingInfo.card.cardNumberPartOrMask }}<br>
+                              {% endif %}
+                              {% if model.billingInfo.paymentType == "PurchaseOrder" %}
+                                  <b>{{ labels.paymentMethod }}</b>: {{ label.purchaseOrder }}<br>
+                                  <b>{{ labels.purchaseOrderNumber }}</b>: {{ model.billingInfo.purchaseOrder.purchaseOrderNumber }}<br>
+                                  {% if model.billingInfo.purchaseOrder.customFields.length > 0 %}
+                                      {% for field in model.billingInfo.purchaseOrder.customFields %}
+                                          <b>{{ field.label }}</b>: {{ field.value }}<br>
+                                      {% endfor %}
+                                  {% endif %}
+                                  <b>{{ labels.purchaseOrderPaymentTerms }}</b>: {{ model.billingInfo.purchaseOrder.paymentTerm.description }}
+                              {% endif %}
+                      </td>
+                  </tr>
 
-                <td>
-                    <b>{{ labels.billingInformation }}</b>:<br><br>{% include "modules/common/email-address-summary" with model=model.billingInfo.billingContact %}<br><br>
-                        {% if model.billingInfo.paymentType == "CreditCard" %}
-                            <b>{{ labels.paymentMethod }}</b>: {{ model.billingInfo.card.paymentOrCardType }} {{ model.billingInfo.card.cardNumberPartOrMask }}<br>
-                        {% endif %}                        
-                        {% if model.billingInfo.paymentType == "PurchaseOrder" %}
-                            <b>{{ labels.paymentMethod }}</b>: {{ label.purchaseOrder }}<br>
-                            <b>{{ labels.purchaseOrderNumber }}</b>: {{ model.billingInfo.purchaseOrder.purchaseOrderNumber }}<br>
-                            {% if model.billingInfo.purchaseOrder.customFields.length > 0 %}
-                                {% for field in model.billingInfo.purchaseOrder.customFields %}
-                                    <b>{{ field.label }}</b>: {{ field.value }}<br>
-                                {% endfor %}
-                            {% endif %}
-                            <b>{{ labels.purchaseOrderPaymentTerms }}</b>: {{ model.billingInfo.purchaseOrder.paymentTerm.description }}
-                        {% endif %}
-                </td>
-            </tr>
+      			{% endifnotequal %}
+              {% endcomment %}
 
-			{% endifnotequal %}
         </tbody>
     </table>
 
     {% include "modules/common/email-order-summary" %}
-    
+
     {% if model.shopperNotes.comments %}
         <h5>{{ labels.comments }}</h5>
         <br><p>{{ model.shopperNotes.comments }}</p>
     {% endif %}
-    
+
     {% if model.shopperNotes.giftMessage %}
         <h5>{{ labels.giftMessage }}</h5>
         <br><p>{{ model.shopperNotes.giftMessage }}</p>
     {% endif %}
 
     {{ labels.emailClosing|string_format(siteContext.generalSettings.websiteName)|safe }}
+
+{% endwith %}
+{% endwith %}
 {% endblock body-content %}

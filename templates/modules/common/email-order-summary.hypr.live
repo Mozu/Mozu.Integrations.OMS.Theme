@@ -1,15 +1,62 @@
 
+
+
+
+</br> FIRST ATTEMPT: </br>
+{% with model.attributes|findwhere("fullyQualifiedName", "tenant~omsOrderIds") as omsIds %}
+  {% for o in omsIds.values.0|split("|") %}
+    {% with o|split(":") as list %}
+    <table class="mz-ordersummary" cellpadding="1" width="100%">
+     <thead>
+         <tr>
+             <td bgcolor="#666666" class="mz-ordersummary-header-product"><font color="#ffffff">{{ labels.product }}</font></td>
+             <td bgcolor="#666666" class="mz-ordersummary-header-qty"><font color="#ffffff">{{ labels.qty }}</font></td>
+             <td bgcolor="#666666" class="mz-ordersummary-header-each"><font color="#ffffff">{{ labels.each }}</font></td>
+             <td bgcolor="#666666" class="mz-ordersummary-header-total"><font color="#ffffff">{{ labels.total }}</font></td>
+         </tr>
+     </thead>
+   {% for item in model.items %}
+        {% if list.1 == item.fulfillmentMethod and list.2 == item.fulfillmentLocationCode %}
+        <tbody class="mz-ordersummary-lineitems">
+          <tr class="mz-ordersummary-line mz-ordersummary-line-item {% if item.discountTotal > 0 %}is-discounted{% endif %}">
+                <td class="mz-ordersummary-item-product">
+                  {{ item.product.name }}
+                  {% if item.product.productUsage == 'Bundle' %}
+                  <dl class="mz-propertylist">
+                    {% for bundledProduct in item.product.bundledProducts %}
+                    <dt>{{ bundledProduct.productCode }}</dt>&nbsp;
+                    <dd>{{ bundledProduct.name }} ({{ bundledProduct.quantity }})</dd>
+                    {% endfor %}
+                  </dl>
+                  {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td align="right"> {% include "modules/common/email-item-price" %}</td>
+                <td align="right"> {% include "modules/common/email-item-total" %}</td>
+            </tr>
+          </tbody>
+        </table>
+        {% endif %}
+      {% endfor %}
+   {% endwith %}
+  {% endfor %}
+{% endwith %}
+
+
+
+<br/>
+REAL THING: </br>
 <table class="mz-ordersummary" cellpadding="1" width="100%">
         <thead>
             <tr>
                 <td bgcolor="#666666" class="mz-ordersummary-header-product"><font color="#ffffff">{{ labels.product }}</font></td>
-                <td bgcolor="#666666" class="mz-ordersummary-header-orderId"><font color="#ffffff">{{ labels.customerCareOrderId }}</font></td>
                 <td bgcolor="#666666" class="mz-ordersummary-header-qty"><font color="#ffffff">{{ labels.qty }}</font></td>
                 <td bgcolor="#666666" class="mz-ordersummary-header-each"><font color="#ffffff">{{ labels.each }}</font></td>
                 <td bgcolor="#666666" class="mz-ordersummary-header-total"><font color="#ffffff">{{ labels.total }}</font></td>
 
             </tr>
         </thead>
+
         {% for item in model.items %}
             <tbody class="mz-ordersummary-lineitems">
               <tr class="mz-ordersummary-line mz-ordersummary-line-item {% if item.discountTotal > 0 %}is-discounted{% endif %}">
@@ -24,6 +71,8 @@
                       </dl>
                       {% endif %}
                     </td>
+
+                    {% comment %}
                     <td>
                       {% with model.attributes|findwhere("fullyQualifiedName", "tenant~omsOrderIds") as omsIds %}
                         {% for o in omsIds.values.0|split("|") %}
@@ -35,6 +84,7 @@
                         {% endfor %}
                       {% endwith %}
                     </td>
+                    {% endcomment %}
                     <td>{{ item.quantity }}</td>
                     <td align="right"> {% include "modules/common/email-item-price" %}</td>
                     <td align="right"> {% include "modules/common/email-item-total" %}</td>
@@ -79,14 +129,14 @@
             {% endif %}
 
             <tr class="mz-ordersummary-shippingtotal">
-              <td align="right" colspan="5">
+              <td align="right" colspan="4">
                 <span class="mz-ordersummary-totalname">{{ labels.shippingHandling }}:</span>
                 <span class="mz-ordersummary-totalvalue">{{ model.shippingTotal|currency }}</span>
               </td>
             </tr>
             {% for shippingDiscount in model.shippingDiscounts %}
             <tr class="mz-ordersummary-shippingdiscount">
-              <td align="right" colspan="5">
+              <td align="right" colspan="4">
                 <span class="mz-ordersummary-totalname">{{ shippingDiscount.discount.discount.name }}:</span>
                 <span class="mz-ordersummary-totalvalue">-{{ shippingDiscount.discount.impact|currency }}</span>
               </td>
@@ -94,14 +144,14 @@
             {% endfor %}
             {% if model.handlingAmount %}
             <tr class="mz-ordersummary-additionalhandling">
-                <td align="right" colspan="5">
+                <td align="right" colspan="4">
                   <span class="mz-ordersummary-totalname">{{ labels.additionalHandling }}{% if model.handlingAmount > model.handlingTotal  %}<span class="is-crossedout" {% block crossedout-inline-style %}{% endblock crossedout-inline-style %}> ({{ model.handlingAmount|currency }})</span>{% endif %}</span>
                   <span class="mz-ordersummary-totalvalue">{{ model.handlingTotal|currency }}</span>
                 </td>
             </tr>
             {% endif %}
             <tr class="mz-ordersummary-grandtotal">
-                <td align="right" colspan="5">
+                <td align="right" colspan="4">
                     <span class="mz-ordersummary-totalname">{{ labels.total }}:</span>
                     <span class="mz-ordersummary-totalvalue">{{ model.total|currency }}</span>
                 </td>
