@@ -1,0 +1,8 @@
+{
+  "baseUrl": "https://home.mozu.com",
+  "developerAccountId": 6559,
+  "developerAccount": {
+    "emailAddress": "michele.keller@kibocommerce.com"
+  },
+  "workingApplicationKey": "KiboDD.coreomsintegration.1.0.0.Release"
+}
