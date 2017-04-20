@@ -1,6 +1,5 @@
 <div class="mz-order-history-package" data-mz-order-id="{{ order.id }}" data-mz-package-id="{{ model.id }}">
 	{% block order-package-header %}
-		
 	{% endblock order-package-header %}
 
 	<div class="mz-order-package-status">
@@ -13,11 +12,9 @@
 						</div>
 					{% endif %}
 				{% endif %}
-		{% endblock order-package-status %} 
+{%endblock order-package-status %}
 	</div>
 
-
-	
 	<div class="mz-order-package-items">
 		{% block order-package-items %}
 			{% for packageItem in model.items %}
@@ -25,17 +22,15 @@
 			{% endfor %}
 		{% endblock order-package-items %}
 	</div>
-	
 
 	<div class="mz-order-package-actions">
 		{% block order-package-actions %}
-				
-	    {% endblock order-package-actions %}	
+	    {% endblock order-package-actions %}
 	</div>
-	
+
 
 	{% block order-package-footer %}
-		
+
 	{% endblock order-package-footer %}
-	
+
 </div>

@@ -23,7 +23,7 @@
   {% endblock item-listing-details %}
   <div class="mz-itemlisting-actions">
   {% block item-listing-actions %}
-    
+
   {% endblock item-listing-actions %}
   </div>
   {% block item-listing-extras %}

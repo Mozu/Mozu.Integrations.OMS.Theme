@@ -1,0 +1,15 @@
+{% comment %}
+  This template expects to be passed two variables:
+  ccn - from order.attributes|findwhere("fullyQualifiedName", "tenant~omsOrderIds")
+  item - order item to parse customer care number for.
+{% endcomment %}
+
+{% with ccn.values[0] as v %}
+  {% for c in v|split("|") %}
+    {% with c|split(":") as list %}
+        {% if list[1] == item.fulfillmentMethod and list[2] == item.fulfillmentLocationCode %}
+          {{ list[0] }}
+        {% endif %}
+    {% endwith %}
+  {% endfor %}
+{% endwith %}

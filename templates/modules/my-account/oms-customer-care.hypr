@@ -1,0 +1,7 @@
+{% for c in ccn.values.0|split("|") %}
+  {% with c|split(":") as list %}
+      {% if list.1 == item.fulfillmentMethod and list.2 == item.fulfillmentLocationCode %}
+        {{list.0}}
+      {% endif %}
+  {% endwith %}
+{% endfor %}
