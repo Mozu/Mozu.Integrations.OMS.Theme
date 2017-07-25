@@ -16,16 +16,22 @@
 		{% endblock order-package-status %} 
 	</div>
 
-
-	
 	<div class="mz-order-package-items">
 		{% block order-package-items %}
 			{% for packageItem in model.items %}
-				{% include "modules/my-account/order-history-package-item" with model=packageItem %}
+                {% if not packageItem.getProductDetails.parentProductCode or packageItem.subtotal != 0 %}
+                    {% include "modules/my-account/order-history-package-item" with model=packageItem %}
+                    {% if packageItem.getProductDetails.Type != "BundleItem" %}
+                        {% for pkgItem in model.items %}
+                            {% if packageItem.ngOrderItemID == pkgItem.ngOrderItemID and pkgItem.getProductDetails.parentProductCode %}
+                                {% include "modules/my-account/order-history-package-item" with model=pkgItem %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% endif %}
 			{% endfor %}
 		{% endblock order-package-items %}
 	</div>
-	
 
 	<div class="mz-order-package-actions">
 		{% block order-package-actions %}

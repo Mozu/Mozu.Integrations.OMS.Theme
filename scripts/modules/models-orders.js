@@ -201,9 +201,9 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                 if (item && item.product.bundledProducts) {
                     if (item.product.bundledProducts.length > 0) {
                         //We do not want to include the orignal bundle in our expoled Items
-                        if (item.product.productUsage !== "Bundle") {
+                        //if (item.product.productUsage !== "Bundle") {
                             self.add(new OrderItemBit(item));
-                        }
+                        //}
                         self.explodeProductBundle(item);
                         return;
                     }

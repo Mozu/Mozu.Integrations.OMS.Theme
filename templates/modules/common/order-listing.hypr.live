@@ -31,12 +31,6 @@
             {% endfor %}
             <li class="mz-orderlisting-details-item">
                 <dl class="mz-propertylist mz-propertylist-order">
-                    <dt>{{ labels.orderStatus }}</dt>
-                    <dd>{{ model.status }}</dd>
-                </dl>
-            </li>
-            <li class="mz-orderlisting-details-item">
-                <dl class="mz-propertylist mz-propertylist-order">
                     <dt>{{ labels.total }}</dt>
                     <dd>{{ model.total|currency }}</dd>
                 </dl>
@@ -65,7 +59,7 @@
     {% block attributes %}
         {% for attribute in model.attributes %}
         {% with model.orderAttributeDefinitions|findwhere('attributeFQN', attribute.fullyQualifiedName) as attDef %}
-            {% if attDef %}
+            {% if attDef and attribute.fullyQualifiedName !== "tenant~oms.orderIds" %}
                 {% with attribute.values|first as attributeVal %}
                     <div class="mz-orderlisting-attribute">
                         <span>{{ attDef.content.value }}</span>
