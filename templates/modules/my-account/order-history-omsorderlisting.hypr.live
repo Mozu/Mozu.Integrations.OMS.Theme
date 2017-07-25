@@ -1,0 +1,98 @@
+<div class="mz-orderlisting" data-mz-id="{{ model.id }}">
+    <div class="mz-orderlisting-detail">
+        {% block order-details %}
+        <ul class="mz-orderlisting-details-list">
+            <li class="mz-orderlisting-details-item">
+                <dl class="mz-propertylist mz-propertylist-order">
+                    <dt>{{ labels.customerCareNumber }}</dt>
+                    <dd>{{ model.orderID }}</dd>
+                </dl>
+            </li>
+            <li class="mz-orderlisting-details-item">
+                <dl class="mz-propertylist mz-propertylist-order">
+                    <dt>{{ labels.subtotal }}</dt>
+                    <dd>{{ model.total|currency }}</dd>
+                </dl>
+            </li>
+            {% if model.amountRefunded > 0 %}
+            <li class="mz-orderlisting-details-item">
+                <dl class="mz-propertylist mz-propertylist-order">
+                    <dt>{{ labels.refund }}</dt>
+                    <dd>{{ model.amountRefunded|currency }}</dd>
+                </dl>
+            </li>
+            {% endif %}
+            <li class="mz-orderlisting-details-item">
+                <dl class="mz-propertylist mz-propertylist-order">
+                    {% if ngOrder.hasFulfilledPackages or ngOrder.hasFulfilledPickups %}
+                    <div class="mz-orderlisting-prompt is-warning" data-mz-message-for="noReturnableItems"></div>
+                    <div class="mz-orderlisting-header">
+                        {% if themeSettings.allowCustomerInitiatedReturns && model.totalReturnableItems > 0 %}
+                        <div class="mz-orderlisting-return">
+                        <span class="mz-itemlisting-action">
+                            <button type="submit" class="mz-button" data-mz-order-id="{{ ngOrder.id }}" data-mz-action="startOrderReturn" data-mz-oms-id="{{ model.orderID }}">{{ labels.returnOrReplace }}</button>
+                        </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </dl>
+            </li>
+        </ul>
+        {% endblock order-details %}
+    </div>
+
+    <div class="mz-orderlisting-items mz-l-formfieldgroup">
+        {% block order-items %}
+        <div class="order-history-listing">
+            {% if model.deliveryMethod === "SHIP_TO_HOME" and model.numShipments> 0 %}
+            <h2 class="mz-orderlisting-heading">{{labels.shipped}}</h2>
+            <div class="data-mz-order-packages">
+                {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.packages orderID=model.orderID %}
+            </div>
+            {% endif %}
+
+            {% if model.deliveryMethod === "IN_STORE_PICKUP" and model.numShipments > 0 %}
+            <h2 class="mz-orderlisting-heading">{{labels.orderItemsPickup}}</h2>
+            <div class="mz-orderlisting-pickup">
+                {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.pickups orderID=model.orderID %}
+            </div>
+            {% endif %}
+
+            {% if model.deliveryMethod === "DIGITAL" and model.numShipments > 0 %}
+            <h2 class="mz-orderlisting-heading">{{labels.orderDigitalItems}}</h2>
+            <div class="mz-orderlisting-pickup">
+                {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.digitalPackages orderID=model.orderID %}
+            </div>
+            {% endif %}
+
+            {% if model.nonShippedItems.length > 0 %}
+                {% if model.status === "CANCELED" %}
+                    <h2 class="mz-orderlisting-heading">{{labels.orderCanceled}}</h2>
+                {% else %}
+                    <h2 class="mz-orderlisting-heading">{{labels.orderItemsNotShipped}}</h2>
+                {% endif %}
+            <div class="mz-orderlisting-nonShipped">
+                {% for item in ngOrder.getNonShippedItems %}
+                    {% for omsItem in model.nonShippedItems %}
+                        {% if omsItem.partNumber == item.product.productCode or omsItem.partNumber == item.productCode %}
+                            {% if item.Type == "BundleItem" %}
+                                {% include "modules/my-account/my-account-product-bundle" with model=item %}
+                            {% else %}
+                                {% for option in omsItem.options %}
+                                    {% for id in option|split(" ") %}
+                                        {% if id == item.id %}
+                                            {% include "modules/my-account/order-history-listing-item" with model=item %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endblock order-items %}
+    </div>
+</div>

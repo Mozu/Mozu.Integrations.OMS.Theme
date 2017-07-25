@@ -37,9 +37,6 @@
 
     {% block head-tag %}
     <head>
-
-        {% include "modules/json-required-for-hyprlive" %}
-
         {% block meta-tags %}
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -48,6 +45,8 @@
         <meta name="correlationId" content="{{ pageContext.correlationId }}">
 
         {% endblock meta-tags %}
+
+        {% include "modules/json-required-for-hyprlive" %}
 
         <title>{% block title-tag-content %}{{ siteContext.generalSettings.websiteName }} {% endblock title-tag-content %}</title>
 

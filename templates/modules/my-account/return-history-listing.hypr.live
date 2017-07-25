@@ -9,6 +9,12 @@
             </li>
             <li class="mz-orderlisting-details-item">
                 <dl class="mz-propertylist mz-propertylist-order">
+                    <dt>{{ labels.customerCareNumber }}</dt>
+                    <dd>{{ model.originalOrderId }}</dd>
+                </dl>
+            </li>
+            <li class="mz-orderlisting-details-item">
+                <dl class="mz-propertylist mz-propertylist-order">
                     <dt>{{ labels.returnNumber }}</dt>
                     <dd>{{ model.returnNumber }}</dd>
                 </dl>

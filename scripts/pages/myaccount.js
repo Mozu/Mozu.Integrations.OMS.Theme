@@ -221,16 +221,24 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
             var self = this;
             Backbone.MozuView.prototype.render.apply(this, arguments);
 
-            if (!this._views.returnView) {
-                this._views.returnView = new ReturnOrderListingView({
-                    el: self.el,
-                    model: self.model
+            var returnView = 'returnView';
+            $.each(self.$el.find('.listing[data-mz-listing-type]'), function(index, val) {
+                $.each(val.attributes, function() {
+                    if (this.name === 'data-mz-oms-id') {
+                        var viewName = returnView + this.value;
+                        if (self._views[viewName] === undefined) {
+                            self._views[viewName] = new ReturnOrderListingView({
+                                el: val,
+                                model: self.model
+                            });
+                            self.views()[viewName].on('renderMessage', self.renderMessage, self);
+                            self.views()[viewName].on('returnCancel', self.returnCancel, self);
+                            self.views()[viewName].on('returnSuccess', self.returnSuccess, self);
+                            self.views()[viewName].on('returnFailure', self.returnFailure, self);
+                        }
+                    }
                 });
-                this.views().returnView.on('renderMessage', this.renderMessage, this);
-                this.views().returnView.on('returnCancel', this.returnCancel, this);
-                this.views().returnView.on('returnSuccess', this.returnSuccess, this);
-                this.views().returnView.on('returnFailure', this.returnFailure, this);
-            }   
+            });
         },
         renderMessage: function(message) {
             var self = this;
@@ -284,8 +292,15 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
             }
         },
         startOrderReturn: function(e) {
-            this.model.clearReturn();
-            this.views().returnView.render();
+            var self = this;
+            $.each(e.currentTarget.attributes, function() {
+               if (this.name === 'data-mz-oms-id') {
+                   var viewName = 'returnView' + this.value;
+                   self.model.clearReturn();
+                   self.model.omsOrderID = this.value;
+                   self.views()[viewName].render();
+               }
+            });
         }
     });
 
@@ -305,6 +320,108 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
             var returnItemViews = [];
 
             self.model.fetchReturnableItems().then(function(data) {
+                var shippedItems = [];
+                var quantityReturnable;
+                var mainBundleDataItem;
+                var shippedItem;
+                var dataItem;
+                var k, a, x;
+                var numPackages = self.model.apiModel.data.packages.length;
+                var numPickups = self.model.apiModel.data.pickups.length;
+                var numDigital = self.model.apiModel.data.digitalPackages.length;
+
+                var dataItem1;
+                var dataItem2;
+                for (var w = 0; w < data.totalCount; w++) {
+                    dataItem1 = data.items[w];
+                    for (x = 0; x < data.totalCount; x++) {
+                        dataItem2 = data.items[x];
+                        if (x !== w) {
+                            if (dataItem1.orderLineId === dataItem2.orderLineId && dataItem1.productCode === dataItem2.productCode &&
+                                dataItem1.orderItemOptionAttributeFQN === dataItem2.orderItemOptionAttributeFQN &&
+                                dataItem1.parentProductCode === dataItem2.parentProductCode) {
+                                if (dataItem2.excludeProductExtras === true) {
+                                    data.totalCount -= 1;
+                                    data.items.splice(x, 1);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                for (var i = 0; i < numPackages; i++) {
+                    var shippedPackage = self.model.apiModel.data.packages[i];
+                    var numPackageItems = shippedPackage.items.length;
+                    for (var m = 0; m < numPackageItems; m++) {
+                        shippedItems.push(shippedPackage.items[m]);
+                    }
+                }
+
+                for (var z = 0; z < numDigital; z++) {
+                    var digital = self.apiModel.data.digitalPackages[z];
+                    var numDigitalItems = digital.items.length;
+                    for (var y = 0; y < numDigitalItems; y++) {
+                        shippedItems.push(digital.items[y]);
+                    }
+                }
+
+                for (var j = 0; j < numPickups; j++) {
+                    var pickup = self.model.apiModel.data.pickups[j];
+                    var numPickupItems = pickup.items.length;
+                    for (var n = 0; n < numPickupItems; n++) {
+                        shippedItems.push(pickup.items[n]);
+                    }
+                }
+
+                var numShippedItems = shippedItems.length;
+                for (var q = 0; q < numShippedItems; q++) {
+                    shippedItem = shippedItems[q];
+                    if (shippedItem.orderID + '' === self.model.omsOrderID + '') {
+                        for (k = 0; k < data.totalCount; k++) {
+                            dataItem = data.items[k];
+                            if (dataItem.orderItemId === shippedItem.ngOrderItemID && dataItem.productCode === shippedItem.productCode) {
+                                quantityReturnable = shippedItem.quantity - shippedItem.returnQuantity;
+                                if (dataItem.orderItemOptionAttributeFQN === undefined) {
+                                    dataItem.quantityReturnable += quantityReturnable;
+                                }
+
+                                if (dataItem.parentProductCode === undefined) {
+                                    if (dataItem.orderItemID === undefined) {
+                                        dataItem.quantity = quantityReturnable;
+                                        dataItem.shipmentID = shippedItem.shipmentID;
+                                        dataItem.orderID = shippedItem.orderID;
+                                        dataItem.orderItemID = shippedItem.orderItemID;
+                                    } else {
+                                        dataItem.quantity += ',' + quantityReturnable;
+                                        dataItem.shipmentID += ',' + shippedItem.shipmentID;
+                                        dataItem.orderID += ',' + shippedItem.orderID;
+                                        dataItem.orderItemID += ',' + shippedItem.orderItemID;
+                                    }
+                                } else {
+                                    for (a = 0; a < data.totalCount; a++) {
+                                        mainBundleDataItem = data.items[a];
+                                        if (dataItem.parentProductCode === mainBundleDataItem.productCode) {
+                                            if (mainBundleDataItem.components === undefined) {
+                                                mainBundleDataItem.components = [];
+                                            }
+                                            mainBundleDataItem.components.push({
+                                                unitQuantity: dataItem.unitQuantity,
+                                                quantity: quantityReturnable,
+                                                shipmentID: shippedItem.shipmentID,
+                                                orderID: shippedItem.orderID,
+                                                orderItemID: shippedItem.orderItemID,
+                                                productCode: dataItem.productCode
+                                            });
+                                            break;
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 var returnableItems = self.model.returnableItems(data.items);
                 if (self.model.getReturnableItems().length < 1) {
                     self.trigger('renderMessage', {
@@ -313,6 +430,8 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                     //self.$el.find('[data-mz-message-for="noReturnableItems"]').show().text(Hypr.getLabel('noReturnableItems')).fadeOut(6000);
                     return false;
                 }
+
+                self.setElement($(document).find('.listing[data-mz-oms-id=' + self.model.omsOrderID + ']')[0]);
                 Backbone.MozuView.prototype.render.apply(self, arguments);
 
                 $.each(self.$el.find('[data-mz-order-history-listing-return-item]'), function(index, val) {
