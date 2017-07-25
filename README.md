@@ -2,11 +2,11 @@
 
 The Mozu Oms Theme builds upon the Mozu Core Theme to support the integration.
 
-##New files:
+## New files:
     return.js
     order-history-omsorderlisting.hypr.live
 
-##Modified files:
+## Modified files:
     en-US.json
     model-orders.js
     myaccount.js
