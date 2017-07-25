@@ -308,7 +308,7 @@
   "returns"                               : "Returns",
   "refund"                                : "Refund",
   "replace"                               : "Replace",
-  "returnOrReplace"                       : "Return or Replace Items",
+  "returnOrReplace"                       : "Return Items",
   "returnRequestDate"                     : "Return Request Date",
   "addNewCard"                            : "Add new card",
   "noSavedCards"                          : "You have no saved payment methods.",
@@ -467,6 +467,8 @@
   "additionalInformation"                 : "Additional Information",
   "printWindowPrintButton"                 : "Print",
   "printWindowCancelButton"               : "Cancel",
-  "returnPrintLabelButton"                : "Print"
+  "returnPrintLabelButton"                : "Print",
 
+  "customerCareNumber"                     : "Customer Care Number",
+  "orderCanceled"                         : "Canceled"
 }
