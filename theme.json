@@ -1,12 +1,12 @@
 {
     "about": {
-        "author": "Mozu",
+        "author": "Ng",
         "defaultLanguage": "en-US",
         "extends": null,
         "isDesktop": true,
         "isMobile": false,
         "isTablet": false,
-        "name": "Mozu.CoreTheme",
+        "name": "Mozu.Integration.OMS",
         "allowProduction": true
     },
     "editors": [

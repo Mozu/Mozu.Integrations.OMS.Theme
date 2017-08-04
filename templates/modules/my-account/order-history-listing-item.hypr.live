@@ -2,15 +2,13 @@
     {% block item-listing-prefix %}
     {% endblock item-listing-prefix %}
     {% block item-listing-image %}
-    {% if model.product.imageUrl %}
     <div class="mz-itemlisting-thumb">
         {% if model.product.imageUrl %}
-        <img class="mz-itemlisting-thumb-img" src="{% make_url "image" model.product with max=80 as_parameters %}" {% if model.product.imageAlternateText %}alt="{{ model.product.imageAlternateText }}"{% endif %} />
+            <img class="mz-itemlisting-thumb-img" src="{% make_url "image" model.product with max=80 as_parameters %}" {% if model.product.imageAlternateText %}alt="{{ model.product.imageAlternateText }}"{% endif %} />
         {% else %}
-        <img class="mz-itemlisting-thumb-img" style="opacity: 0" src="/resources/images/placeholder.png" {% if model.imageAlternateText %}alt="{{ model.imageAlternateText }}"{% endif %} />
+            <img class="mz-itemlisting-thumb-img" src="/resources/images/placeholder.png" {% if model.imageAlternateText %}alt="{{ model.imageAlternateText }}"{% endif %} />
         {% endif %}
     </div>
-    {% endif %}
     {% endblock item-listing-image %}
     {% block item-listing-details %}
     <div class="mz-itemlisting-details">
@@ -26,7 +24,7 @@
             {{labels.orderPackagePrice}} : {%if model.product.price.tenantOverridePrice %} {{ model.product.price.tenantOverridePrice|currency }} {% else %} {%if model.product.price.salePrice %} {{ model.product.price.salePrice|currency }} {% else %} {{ model.product.price.price|currency }} {%endif%}{%endif%}
         </div>
         <div class="mz-itemlisting-quantity">
-            {{labels.orderPackageQuantity}} : {%if packageItem %} {{ packageItem.quantity}} {% else %} {{ model.quantity}} {% endif %}
+            {{labels.orderPackageQuantity}} : {% if quantity %} {{ quantity }} {% else %} {{ model.quantity }} {% endif %}
         </div>
         {% endblock item-details %}
     </div>

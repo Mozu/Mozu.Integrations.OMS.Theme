@@ -45,9 +45,9 @@
           <ul class="mz-itemlisting-bunldedProducts">
             {% for bundle in model.product.bundledProducts %}
               {% if bundle.optionAttributeFQN == "" %}
-              <li class="mz-itemlisting-bunldedProducts-bundle">
-                {% include "modules/my-account/my-account-product-bundle" with model=bundle %}
-              </li>
+                <li class="mz-itemlisting-bunldedProducts-bundle">
+                    {% include "modules/my-account/my-account-product-bundle" with model=bundle %}
+                </li>
               {% endif %}
             {% endfor %}
           </ul>

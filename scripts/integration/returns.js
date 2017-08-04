@@ -1,7 +1,6 @@
 function submitReturn(element) {
     require(['modules/jquery-mozu', 'modules/api'], function($, api) {
-        $(element).attr('disabled', true);
-
+        element.disabled = true;
         var currentReturn = element.closest('.mz-orderlisting');
         var returnForms = $(currentReturn).find('.mz-returnform-field');
         var numReturnItems = returnForms.length;
@@ -97,7 +96,9 @@ function submitReturn(element) {
             if (response.message === 'success') {
                 window.location.reload(true);
             }
-            $(element).attr('disabled', false);
+            element.disabled = false;
+        },function() {
+            element.disabled = false;
         });
     });
 }

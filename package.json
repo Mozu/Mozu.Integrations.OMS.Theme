@@ -1,7 +1,7 @@
 {
-  "name": "mozu-core-theme",
-  "author": "Volusion, Inc.",
-  "description": "The core storefront theme for Mozu.",
+  "name": "mozu-oms-theme",
+  "author": "Ng",
+  "description": "The core storefront theme for Mozu with changes for oms",
   "version": "9.6.0",
   "scripts": {
     "clean": "rm -rf compiled",

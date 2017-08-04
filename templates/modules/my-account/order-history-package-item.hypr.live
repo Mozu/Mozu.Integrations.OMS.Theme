@@ -6,12 +6,12 @@
 		{% block order-package-item %}
                 {% if model.getProductDetails.Type == "BundleItem" and model.subtotal == 0  %}
                     {% if model.optionAttributeFQN %}
-                        {% include "modules/my-account/my-account-product-bundle" with model=model.getProductDetails packageItem=model optionAttributeFQN=model.optionAttributeFQN %}
+                        {% include "modules/my-account/my-account-product-bundle" with model=model.getProductDetails quantity=packageItem.quantity %}
                     {% else %}
-                        {% include "modules/my-account/my-account-product-bundle" with model=model.getProductDetails packageItem=model %}
+                        {% include "modules/my-account/my-account-product-bundle" with model=model.getProductDetails quantity=packageItem.quantity %}
                     {% endif %}
 			    {% else %}
-				    {% include "modules/my-account/order-history-listing-item" with model=model.getProductDetails packageItem=model %}
+				    {% include "modules/my-account/order-history-listing-item" with model=model.getProductDetails quantity=packageItem.quantity %}
 			    {% endif %}
 
 		{% endblock order-package-item %}	
