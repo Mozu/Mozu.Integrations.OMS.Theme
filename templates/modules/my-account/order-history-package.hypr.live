@@ -16,16 +16,19 @@
 		{% endblock order-package-status %} 
 	</div>
 
-
-	
 	<div class="mz-order-package-items">
 		{% block order-package-items %}
 			{% for packageItem in model.items %}
-				{% include "modules/my-account/order-history-package-item" with model=packageItem %}
+                {% if packageItem.getProductDetails.Type == "BundleItem" %}
+                    {% include "modules/my-account/order-history-package-item" with model=packageItem %}
+                {% else %}
+                    {% if packageItem.notBundle %}
+                        {% include "modules/my-account/order-history-package-item" with model=packageItem %}
+                    {% endif %}
+                {% endif %}
 			{% endfor %}
 		{% endblock order-package-items %}
 	</div>
-	
 
 	<div class="mz-order-package-actions">
 		{% block order-package-actions %}

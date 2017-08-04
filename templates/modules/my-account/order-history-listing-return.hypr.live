@@ -1,6 +1,4 @@
-{% extends "modules/common/order-listing" %}
-{% block order-items %}
-
+<div class="mz-orderlisting" data-mz-id="{{ model.id }}">
 <div class="order-history-listing-return">
 <div class="mz-orderlisting-heading mz-order-history-return-status"><h3>{{labels.orderCreateReturn}}</h3></div>
     {% if model.hasFulfilledPackages or model.hasFulfilledPickups %}
@@ -15,9 +13,8 @@
         {% endblock order-packages %}
     {% endif %}
 <div class="mz-orderlisting-footer">
-    <button class="mz-button" data-mz-action="finishOrderReturn">{{ labels.submit }}</button>
+    <button class="mz-button" onclick="submitReturn(this)">{{ labels.submit }}</button>
     <button class="mz-button" data-mz-action="cancelOrderReturn">{{ labels.cancel }}</button>
 </div>
-
 </div>
-{% endblock order-items %}
+</div>
