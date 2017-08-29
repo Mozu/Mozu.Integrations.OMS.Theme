@@ -1,4 +1,4 @@
-﻿﻿<div class="mz-orderlisting" data-mz-id="{{ model.id }}">
+﻿<div class="mz-orderlisting" data-mz-id="{{ model.id }}">
     <div class="mz-orderlisting-detail">
     {% block order-details %}
         <ul class="mz-orderlisting-details-list">

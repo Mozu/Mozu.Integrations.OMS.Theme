@@ -5,15 +5,15 @@
         {% block order-packages %}
                 <div class="mz-order-returns">
                     {% for item in model.getReturnableItems %}
-                                <div data-mz-order-history-listing-return-item  data-mz-product-code="{{ item.product.variationProductCode|default(item.product.productCode) }}" data-mz-option-attribute-fqn="{{ item.orderItemOptionAttributeFQN}}" data-mz-order-line-id="{{ item.orderLineId }}">
-                                {% include "modules/my-account/order-history-listing-return-item" with model=item %}
-                            </div>
+                        <div data-mz-order-history-listing-return-item  data-mz-product-code="{{ item.product.variationProductCode|default(item.product.productCode) }}" data-mz-option-attribute-fqn="{{ item.orderItemOptionAttributeFQN}}" data-mz-order-line-id="{{ item.orderLineId }}">
+                            {% include "modules/my-account/order-history-listing-return-item" with model=item %}
+                        </div>
                     {% endfor %}
-                </div> 
+                </div>
         {% endblock order-packages %}
     {% endif %}
 <div class="mz-orderlisting-footer">
-    <button class="mz-button" onclick="submitReturn(this)">{{ labels.submit }}</button>
+    <button class="mz-button" data-mz-action="finishOrderReturn">{{ labels.submit }}</button>
     <button class="mz-button" data-mz-action="cancelOrderReturn">{{ labels.cancel }}</button>
 </div>
 </div>

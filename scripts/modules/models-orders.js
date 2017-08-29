@@ -168,7 +168,7 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                         return (extra.uniqueProductCode() === groupedItem[0].uniqueProductCode() && extra.get('optionAttributeFQN') === groupedItem[0].get('optionAttributeFQN'));
                     });
                     if (duplicateItem) {
-                        productExtraGroup[key].add(extra);
+                        productExtraGroup[key].push(extra);
                         return false;
                     }
                     productExtraGroup[key] = [extra];
@@ -577,10 +577,122 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                     return false;
                 }
                 this.isLoading(true);
-                rma.toJSON();
-                rma.syncApiModel();
-                op = rma.apiCreate();
-                if (op) return op;
+
+                var returns = [];
+                var errors = {};
+                var numReturnItems = rma.attributes.items.models.length;
+
+                for (var i = 0; i < numReturnItems; i++) {
+                    var returnItem = rma.attributes.items.models[i].attributes;
+
+                    if (returnItem.isSelectedForReturn !== true) {
+                        continue;
+                    }
+
+                    var comment = returnItem.rmaComments;
+                    var reason = returnItem.rmaReason;
+                    var quantity = returnItem.rmaQuantity;
+                    var orderLineId = returnItem.orderLineId;
+
+                    var itemErrors = [];
+                    if (typeof(reason) === 'undefined' || reason.length === 0) {
+                        itemErrors.push('rmaReason');
+                    } else if (reason === 'Other' && typeof(comment) === 'undefined') {
+                        itemErrors.push('rmaComments');
+                    }
+
+                    if (typeof(quantity) === 'undefined' || quantity < 1) {
+                        itemErrors.push('rmaQuantity');
+                    }
+
+                    if (itemErrors.length > 0) {
+                        errors[orderLineId] = itemErrors;
+                        continue;
+                    }
+
+                    var omsReason;
+                    if (typeof(comment) !== 'undefined' && comment.length > 0) {
+                        omsReason = reason + ': ' + comment;
+                    } else {
+                        omsReason = reason;
+                    }
+
+                    var numBundleComponents = typeof(returnItem.components) === 'undefined' ? 0 : returnItem.components.length;
+                    var returnedComponents = {};
+                    var componentQuantityLeftToReturn;
+                    var componentQuantityToReturn;
+
+                    for (var n = 0; n < numBundleComponents; n++) {
+                        var bundleComponent = returnItem.components[n];
+                        var orderItemID = bundleComponent.orderItemID;
+
+                        componentQuantityLeftToReturn = returnedComponents[orderItemID];
+                        componentQuantityToReturn = bundleComponent.unitQuantity * quantity;
+                        var actualComponentQuantityToReturn;
+                        if (componentQuantityLeftToReturn === undefined) {
+                            if (componentQuantityToReturn <= bundleComponent.quantity) {
+                                actualComponentQuantityToReturn = componentQuantityToReturn;
+                                returnedComponents[orderItemID] = 0;
+                            } else {
+                                actualComponentQuantityToReturn = bundleComponent.quantity;
+                                returnedComponents[orderItemID] = componentQuantityToReturn - bundleComponent.quantity;
+                            }
+                        } else if (componentQuantityLeftToReturn > 0) {
+                            if (componentQuantityLeftToReturn <= bundleComponent.quantity) {
+                                actualComponentQuantityToReturn = componentQuantityLeftToReturn;
+                                returnedComponents[orderItemID] = 0;
+                            } else {
+                                actualComponentQuantityToReturn = bundleComponent.quantity;
+                                returnedComponents[orderItemID] = componentQuantityLeftToReturn - bundleComponent.quantity;
+                            }
+                        }
+
+                        returns.push({
+                            orderItemID: orderItemID,
+                            quantity: actualComponentQuantityToReturn,
+                            shipmentID: bundleComponent.shipmentID,
+                            orderID: bundleComponent.orderID,
+                            reason: omsReason
+                        });
+                    }
+
+                    var orderItemIDs = (returnItem.orderItemID + '').split(',');
+                    var quantities = (returnItem.quantity + '').split(',');
+                    var shipmentIDs = (returnItem.shipmentID + '').split(',');
+                    var orderIDs = (returnItem.orderID + '').split(',');
+                    var numShipments = shipmentIDs.length;
+
+                    for (var k = 0; k < numShipments; k++) {
+                        if (quantity <= quantities[k]) {
+                            returns.push({
+                                orderItemID: orderItemIDs[k],
+                                quantity: quantity,
+                                shipmentID: shipmentIDs[k],
+                                orderID: orderIDs[k],
+                                reason: omsReason
+                            });
+                            break;
+                        } else {
+                            returns.push({
+                                orderItemID: orderItemIDs[k],
+                                quantity: quantities[k],
+                                shipmentID: shipmentIDs[k],
+                                orderID: orderIDs[k],
+                                reason: omsReason
+                            });
+                            quantity -= quantities[k];
+                        }
+                    }
+                }
+
+                if (_.isEmpty(errors)) {
+                    if (returns.length < 1) {
+                        return null;
+                    }
+                    return [ null, api.request('POST', 'oms/return', { returns: returns })];
+                } else {
+                    return [ errors, null ];
+                }
             }
         }),
         OrderCollection = Backbone.MozuPagedCollection.extend({

@@ -45,9 +45,9 @@
           <ul class="mz-itemlisting-bunldedProducts">
             {% for bundle in model.product.bundledProducts %}
               {% if bundle.optionAttributeFQN == "" %}
-                <li class="mz-itemlisting-bunldedProducts-bundle">
-                    {% include "modules/my-account/my-account-product-bundle" with model=bundle %}
-                </li>
+              <li class="mz-itemlisting-bunldedProducts-bundle">
+                {% include "modules/my-account/my-account-product-bundle" with model=bundle %}
+              </li>
               {% endif %}
             {% endfor %}
           </ul>
@@ -59,21 +59,20 @@
 
 <div class="mz-l-formfieldgroup-cell">
     <div class="mz-itemlisting-rmaitem-details">
-        <h3>{{ labels.returnDetails }}</h3>
+        <h3>{{ labels.returnReason }}</h3>
         <dl class="mz-propertylist">
             {% for r in model.reasons %}
             <dd>{{ r.reason }}</dd>
             {% endfor %}
 
-            <dd>{{ model.status }}</dd>
-
             {% for c in model.notes %}
             <dd>{{ c.text }}</dd>
             {% endfor %}
+        </dl>
 
-            {% if model.returnType %}
-            <dd class="return-type"><strong>{{ labels.returnTypeRequested|string_format(model.returnType) }}</strong></dd>
-            {% endif %}
+        <h3>{{ labels.returnStatus }}</h3>
+        <dl class="mz-propertylist">
+            <dd>{{ model.status }}</dd>
         </dl>
     </div>
 </div>

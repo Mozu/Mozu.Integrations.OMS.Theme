@@ -7,7 +7,6 @@
 {% block body-content %}
 
 {% require_script "pages/myaccount" %}
-{% require_script "integration/returns" %}
 
 {% preload_json model "customer" %}
 

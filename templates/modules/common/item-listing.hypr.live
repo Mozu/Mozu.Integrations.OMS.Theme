@@ -19,7 +19,7 @@
       {% for option in model.product.options %}{{ option.name }}: {{ option.value }}, {% endfor %}{{ model.product.variationProductCode|default(model.product.productCode) }}{% if model.product.measurements.packageWeight.value %}, {{ model.product.measurements.packageWeight.value }}{{model.measurements.packageWeight.unit }}{% endif %}
     </div>
     <div class="mz-itemlisting-price">
-     {{labels.orderPackagePrice}} : {{ model.product.price.price|currency }}
+     {{labels.orderPackagePrice}}: {% include "modules/common/price" with model=model.product.price %}
     </div>
     {% endblock item-details %}
   </div>

@@ -154,9 +154,17 @@
   "cartEmpty"                             : "You have no items in your cart.",
   "taxAtCheckout"                         : "Tax & Shipping Calculated at Checkout",
   "orderTotal"                            : "Order Total",
-  "emptyCart"                             : "Empty Cart", 
+  "emptyCart"                             : "Empty Cart",
   "proceedToCheckout"                     : "Checkout",
   "storePickupAt"                         : "In-Store Pickup at <strong>{0}</strong>",
+  "inStorePickup"                         : "In-Store Pickup",
+  "unavailableForThisItem"                : "Unavailable for this item.",
+  "shipItems"                             : "Ship Items",
+  "inStoreOnly"                           : "This item is available in-store only.",
+  "changeStore"                           : "Change store",
+  "digitalDeliveryOnly"                   : "This item is available via digital delivery only.",
+  "selectStore"                           : "Select Store",
+
 
   "checkout"                              : "Checkout",
   "orderSummary"                          : "Order Summary",
@@ -217,7 +225,7 @@
   "orderPackageFulfilled"                 : "Fulfilled {0}",
   "orderItemsNotShipped"                  : "Shipping Soon",
   "orderItemsPickup"                      : "Pick up in store",
-  "orderDigitalItems"                     : "Fulfilled Digital Products", 
+  "orderDigitalItems"                     : "Fulfilled Digital Products",
   "orderCreateReturn"                     : "Create a Return",
   "orderPackagePrice"                     : "Price",
   "orderPackageQuantity"                  : "Quantity",
@@ -390,7 +398,7 @@
   "enterProductQuantity"                  : "Please enter a product quantity above 0",
   "enterMinProductQuantity"               : "Minimum required quantity for purchase is {0}",
   "enterReturnReason"                     : "Please select a return reason.",
-  "enterReturnQuantity"                   : "Please enter a quantity above 1 to return.",
+  "enterReturnQuantity"                   : "Please enter a quantity above 0 to return.",
   "enterOtherComments"                    : "Please enter a comment explaining the reason for this return.",
   "other"                                 : "Other (please comment)",
   "missingParts"                          : "Missing parts or accessories",
@@ -470,5 +478,9 @@
   "returnPrintLabelButton"                : "Print",
 
   "customerCareNumber"                     : "Customer Care Number",
-  "orderCanceled"                         : "Canceled"
+  "orderCanceled"                         : "Canceled",
+  "pickupReady"                           : "Ready for Pickup",
+
+  "returnReason"                          : "Return Reason",
+  "returnStatus"                          : "Return Status"
 }

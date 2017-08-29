@@ -23,7 +23,7 @@
                         </ul>
                  {% endif %}
                  {% if msg.messageType == "returnFailure" %}
-                        <ul class="is-showing mz-success">
+                        <ul class="is-showing mz-errors">
                             <li class="mz-message-item" >{{ labels|prop(msg.messageType) }}</li>
                         </ul>
                  {% endif %}

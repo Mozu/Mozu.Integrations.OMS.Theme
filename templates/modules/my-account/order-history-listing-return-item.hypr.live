@@ -4,83 +4,58 @@
 mz-l-formfieldgroup
 {% endblock module-classes %}
 
-{% block item-listing-prefix %}
 <div class="mz-l-formfieldgroup-row">
-<div class="mz-l-formfieldgroup-cell">
-<div class="mz-itemlisting-select">
-
-    {% block item-return-quantity %}
-    <div class="mz-returnform-quantity">
-        <label class="mz-returnform-label">{{ labels.quantityToReturn }}<span class="is-required"> *</span>:</label>
-        <div class="mz-returnform-field">
-            <input type="number" data-mz-value="rmaQuantity" value="0" min="0" max="{{ model.quantityReturnable }}" class="mz-returnform-quantityfield" data-mz-product-code="{{ model.productCode }}" data-mz-item-id="{{ model.getProductDetails.id }}" quantity="{{ model.quantity }}" orderID="{{ model.orderID }}" shipmentID="{{ model.shipmentID }}" orderItemID="{{ model.orderItemID }}" />
-            {% for component in model.components %}
-                <span class="bundle-component-info" quantity="{{ component.quantity }}" unitQuantity="{{ component.unitQuantity }}" shipmentID="{{ component.shipmentID }}" orderID="{{ component.orderID }}" orderItemID="{{ component.orderItemID }}" productCode="{{ component.productCode }}"></span>
-            {% endfor %}
-            <span class="mz-returnform-quantitylabel">{{ labels.of }} {{ model.quantityReturnable }}</span>
-            <span class="mz-validationmessage" data-mz-validationmessage-for="rmaQuantity"></span>
+    {% block item-listing-prefix %}
+    <div class="mz-l-formfieldgroup-cell">
+        <div class="mz-itemlisting-select">
+            <input type="checkbox" data-mz-value="isSelectedForReturn" data-mz-product-code="{{ model.productCode }}" data-mz-item-id="{{ model.getProductDetails.id }}"  value="true" {% if model.isSelectedForReturn %}checked="checked"{% endif %} data-mz-action="startReturnItem"/>
         </div>
     </div>
-    {% endblock item-return-quantity %}
-</div>
-</div>
-{% endblock item-listing-prefix %}
+    {% endblock item-listing-prefix %}
 
-{% block item-listing-image %}
-<div class="mz-l-formfieldgroup-cell">
-    <div class="mz-itemlisting-thumb">
-  {% if model.product.imageUrl %}
-      <img class="mz-itemlisting-thumb-img" src="{% make_url "image" model.product with max=70 as_parameters %}" {% if model.product.imageAlternateText %}alt="{{ model.product.imageAlternateText }}"{% endif %} /> 
-  {% else %}
-      <img class="mz-itemlisting-thumb-img" src="/resources/images/placeholder.png" {% if model.imageAlternateText %}alt="{{ model.imageAlternateText }}"{% endif %} />
-  {% endif %}
-  </div>
-</div>
-  
-  <div class="mz-l-formfieldgroup-cell">
-{% endblock item-listing-image %}
-
-{% block item-details %}
-    <div class="mz-itemlisting-description">
-      {% for option in model.product.options %}{{ option.name }}: {{ option.value }}, {% endfor %}{{ model.product.variationProductCode|default(model.product.productCode) }}{% if model.product.measurements.packageWeight.value %}, {{ model.product.measurements.packageWeight.value }}{{model.measurements.packageWeight.unit }}{% endif %}
+    {% block item-listing-image %}
+    <div class="mz-l-formfieldgroup-cell">
+        <div class="mz-itemlisting-thumb">
+            {% if model.product.imageUrl %}
+            <img class="mz-itemlisting-thumb-img" src="{% make_url "image" model.product with max=70 as_parameters %}" {% if model.product.imageAlternateText %}alt="{{ model.product.imageAlternateText }}"{% endif %} />
+            {% else %}
+            <img class="mz-itemlisting-thumb-img" src="/resources/images/placeholder.png" {% if model.imageAlternateText %}alt="{{ model.imageAlternateText }}"{% endif %} />
+            {% endif %}
+        </div>
     </div>
-    {% if model.product.price.price %}
-      <div class="mz-itemlisting-price">
-       {{labels.orderPackagePrice}} : {%if model.product.price.tenantOverridePrice %} {{ model.product.price.tenantOverridePrice|currency }} {% else %} {%if model.product.price.salePrice %} {{ model.product.price.salePrice|currency }} {% else %} {{ model.product.price.price|currency }} {%endif%}{%endif%}
-      </div>
-    {%endif%}
-    <div class="mz-itemlisting-quantity">
-     {{labels.orderPackageQuantity}} : {{ model.quantityReturnable }}
-    </div>
+    {% endblock item-listing-image %}
 
-    {% if model.product.bundledProducts.length > 0 %}
-    <ul class="mz-itemlisting-bunldedProducts">
-      {% for bundle in model.product.bundledProducts %}
-        <li class="mz-itemlisting-bunldedProducts-bundle">
-            {% include "modules/my-account/my-account-product-bundle" with model=bundle %}
-        </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
+    <div class="mz-l-formfieldgroup-cell">
+    {% block item-details %}
+        <div class="mz-itemlisting-description">
+            {% for option in model.product.options %}{{ option.name }}: {{ option.value }}, {% endfor %}{{ model.product.variationProductCode|default(model.product.productCode) }}{% if model.product.measurements.packageWeight.value %}, {{ model.product.measurements.packageWeight.value }}{{model.measurements.packageWeight.unit }}{% endif %}
+        </div>
+        {% if model.product.price.price %}
+        <div class="mz-itemlisting-price">
+            {{labels.orderPackagePrice}} : {%if model.product.price.tenantOverridePrice %} {{ model.product.price.tenantOverridePrice|currency }} {% else %} {%if model.product.price.salePrice %} {{ model.product.price.salePrice|currency }} {% else %} {{ model.product.price.price|currency }} {%endif%}{%endif%}
+        </div>
+        {%endif%}
+        <div class="mz-itemlisting-quantity">
+            {{labels.orderPackageQuantity}} : {{ model.quantityReturnable }}
+        </div>
 
-
+        {% if model.product.bundledProducts.length > 0 %}
+        <ul class="mz-itemlisting-bunldedProducts">
+            {% for bundle in model.product.bundledProducts %}
+            <li class="mz-itemlisting-bunldedProducts-bundle">
+                {% include "modules/my-account/my-account-product-bundle" with model=bundle %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     {% endblock item-details %}
 
-{% block item-listing-actions %}
-   <div data-mz-package-item-return-form class="mz-itemlisting-return">
-  	{% if model.isSelectedForReturn %}
-  	
-  		<p class="mz-itemlisting-prompt is-warning">{{ labels.returnInfo|safe }}</p>
-  		{% include "modules/my-account/package-item-return-form" with model=model %}
-  	
-  	{% endif %}
-  </div>
+    {% block item-listing-actions %}
+        <div data-mz-package-item-return-form class="mz-itemlisting-return">
+            {% include "modules/my-account/package-item-return-form" with model=model %}
+        </div>
+    {% endblock item-listing-actions %}
+    </div>
 </div>
-{% endblock item-listing-actions %}
-
-{% block item-listing-extras %} 
-</div>
-
-
-
+{% block item-listing-extras %}
 {% endblock item-listing-extras %}
