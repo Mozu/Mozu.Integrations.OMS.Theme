@@ -12,7 +12,7 @@
     function ($, _, Hypr, Backbone, api, CustomerModels, AddressModels, PaymentMethods, HyprLiveContext) {
 
         var CheckoutStep = Backbone.MozuModel.extend({
-            helpers: ['stepStatus', 'requiresFulfillmentInfo','isNonMozuCheckout', 'requiresDigitalFulfillmentContact', 'isShippingEditHidden'],
+            helpers: ['stepStatus', 'requiresFulfillmentInfo','isNonMozuCheckout', 'requiresDigitalFulfillmentContact','isShippingEditHidden'],  //
             // instead of overriding constructor, we are creating
             // a method that only the CheckoutStepView knows to
             // run, so it can run late enough for the parent
@@ -64,10 +64,10 @@
                 return (activePayments && (_.findWhere(activePayments, { paymentType: 'PayPalExpress2' })));
             },
             isShippingEditHidden: function() {
-              if (HyprLiveContext.locals.themeSettings.changeShipping) return false;
-
-              return this.isNonMozuCheckout();
-             },
+                if (HyprLiveContext.locals.themeSettings.changeShipping) return false;
+  
+                return this.isNonMozuCheckout();
+            },
             requiresDigitalFulfillmentContact: function () {
                 return this.getOrder().get('requiresDigitalFulfillmentContact');
             },
@@ -169,10 +169,6 @@
                     }, this);
 
                     return false;
-                }
-
-                if (this.get('updateMode') === 'edit') {
-                    this.set('updateMode', 'editComplete');
                 }
 
                var parent = this.parent,
@@ -388,7 +384,7 @@
             checkoutFlow: function () {
                 return this.get('paymentWorkflow');
             },
-            cancelExternalCheckout: function () {
+            cancelExternalCheckout: function() {
                 var self = this;
                 var order = this.getOrder();
                 var currentPayment = order.apiModel.getCurrentPayment();
@@ -1053,7 +1049,7 @@
                 _.bindAll(this, 'applyPayment', 'markComplete');
             },
             selectPaymentType: function(me, newPaymentType) {
-                if (!me.changed || !me.changed.paymentWorkflow) {
+                if ((!me.changed || !me.changed.paymentWorkflow) && !me.get('paymentWorkflow')) {
                     me.set('paymentWorkflow', 'Mozu');
                 }
                 me.get('check').selected = newPaymentType === 'Check';
@@ -1082,7 +1078,6 @@
                     paymentTypeIsCard = activePayments && !!_.findWhere(activePayments, { paymentType: 'CreditCard' }),
                     balanceNotPositive = this.parent.get('amountRemainingForPayment') <= 0;
 
-                if (this.isNonMozuCheckout()) return this.stepStatus("complete");
                 if (paymentTypeIsCard && !Hypr.getThemeSetting('isCvvSuppressed')) return this.stepStatus('incomplete'); // initial state for CVV entry
 
                 if (!fulfillmentComplete) return this.stepStatus('new');
@@ -1763,9 +1758,7 @@
                             shopperNotes: order.get('shopperNotes').toJSON()
                         });
                     }];
-                if (this.isNonMozuCheckout()) {
-                    billingContact.set("address", null);
-                }
+
                 var storefrontOrderAttributes = require.mozuData('pagecontext').storefrontOrderAttributes;
                 if(storefrontOrderAttributes && storefrontOrderAttributes.length > 0) {
                     var updateAttrs = [];
@@ -1788,6 +1781,11 @@
                     }
                 }
 
+                if (this.isNonMozuCheckout()) {
+                    billingContact.set("address", null);
+                }
+
+
                 if (this.isSubmitting) return;
 
                 this.isSubmitting = true;
@@ -1803,7 +1801,7 @@
                 this.setFulfillmentContactEmail();
 
                 // skip payment validation, if there are no payments, but run the attributes and accept terms validation.
-                if ((nonStoreCreditTotal > 0 && this.validate() && ( !this.isNonMozuCheckout() || this.validate().agreeToTerms)) || this.validateReviewCheckoutFields()) {
+                if ( ((nonStoreCreditTotal > 0 && this.validate()) || this.validateReviewCheckoutFields()) && ( !this.isNonMozuCheckout() || this.validate().agreeToTerms)) {
                     this.isSubmitting = false;
                     return false;
                 } 
@@ -1833,7 +1831,7 @@
                 }
 
                 //save contacts
-                if (!this.isNonMozuCheckout() && (isAuthenticated || isSavingNewCustomer)) {
+                if (!this.isNonMozuCheckout() && isAuthenticated || isSavingNewCustomer) {
                     if (!isSameBillingShippingAddress && !isSavingCreditCard) {
                         if (requiresFulfillmentInfo) process.push(this.addShippingContact);
                         if (requiresBillingInfo) process.push(this.addBillingContact);

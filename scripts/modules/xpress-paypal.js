@@ -4,12 +4,13 @@ define(['modules/jquery-mozu',
         'hyprlivecontext',
         'underscore'],
 function($, Api, CartModels, hyprlivecontext, _) {
+    var siteContext = hyprlivecontext.locals.siteContext,
+        externalPayment = _.findWhere(siteContext.checkoutSettings.externalPaymentWorkflowSettings, {"name" : "PayPalExpress2"});
 
     window.paypalCheckoutReady = function() {
+       if (!externalPayment || !externalPayment.isEnabled) return;
 
-      var siteContext = hyprlivecontext.locals.siteContext,
-          externalPayment = _.findWhere(siteContext.checkoutSettings.externalPaymentWorkflowSettings, {"name" : "PayPalExpress2"}),
-          merchantAccountId = _.findWhere(externalPayment.credentials, {"apiName" : "merchantAccountId"}),
+       var merchantAccountId = _.findWhere(externalPayment.credentials, {"apiName" : "merchantAccountId"}),
           environment = _.findWhere(externalPayment.credentials, {"apiName" : "environment"}),
           id = CartModels.Cart.fromCurrent().id || window.order.id,
           isCart = window.location.href.indexOf("cart") > 0;
@@ -34,7 +35,7 @@ function($, Api, CartModels, hyprlivecontext, _) {
                         window.paypal.checkout.startFlow(url);
                     },
                     error: function (responseData, textStatus, errorThrown) {
-                        console.log("Error in ajax post " + responseData.statusText);
+                        //console.log("Error in ajax post " + responseData.statusText);
                         //Gracefully Close the minibrowser in case of AJAX errors
                         window.paypal.checkout.closeFlow();
                     }
@@ -46,16 +47,17 @@ function($, Api, CartModels, hyprlivecontext, _) {
     var paypal = {
       scriptLoaded: false,
      loadScript: function() {
-      var self = this;
-       if (this.scriptLoaded) return;
-        this.scriptLoaded = true;
-      $.getScript("//www.paypalobjects.com/api/checkout.js").done(function(scrit, textStatus){
-        //console.log(textStatus);
-
-      }).fail(function(jqxhr, settings, exception) {
-        console.log(jqxhr);
-      });
-    }
+      if(externalPayment.isEnabled){
+        var self = this;
+         if (this.scriptLoaded) return;
+          this.scriptLoaded = true;
+        $.getScript("//www.paypalobjects.com/api/checkout.js").done(function(scrit, textStatus){
+          //console.log(textStatus);
+        }).fail(function(jqxhr, settings, exception) {
+          //console.log(jqxhr);
+        });
+      }
+     }
    };
    return paypal;
 });

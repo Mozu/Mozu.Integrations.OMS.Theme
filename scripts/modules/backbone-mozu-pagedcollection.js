@@ -169,7 +169,7 @@
                     var newPage;
                     var body = {
                         startIndex: newIndex,
-                        pageSize: self.lastRequest.pageSize
+                        pageSize: self.get('pageSize')
                     };
 
                     if (type === 'orders') {
