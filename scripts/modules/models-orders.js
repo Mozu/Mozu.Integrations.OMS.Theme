@@ -48,11 +48,8 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                 var self = this;
                 if (this.collection.parent) {
                     return this.collection.parent.getOrder().get('explodedItems').find(function(model) {
-                        if (self.get('actualPrice') !== 0 && model.get('Type') === 'BundleItem') {
-                           return false;
-                        }
-                        if (model.get('productCode')) {
-                            return self.get('productCode') === model.get('productCode');
+                        if (model.get('Type') === 'BundleItem') {
+                            return self.get('productCode') === model.get('productCode') && self.get('customData').lineID === model.get('parentLineId') + '';
                         }
                         return self.get('productCode') === (model.get('product').get('variationProductCode') ? model.get('product').get('variationProductCode') : model.get('product').get('productCode'));
                     });
