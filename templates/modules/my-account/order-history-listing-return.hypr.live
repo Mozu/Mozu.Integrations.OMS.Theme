@@ -1,6 +1,7 @@
 <div class="mz-orderlisting" data-mz-id="{{ model.id }}">
 <div class="order-history-listing-return">
 <div class="mz-orderlisting-heading mz-order-history-return-status"><h3>{{labels.orderCreateReturn}}</h3></div>
+    <p class="mz-itemlisting-prompt is-warning">{{ labels.returnInfo|safe }}</p>
     {% if model.hasFulfilledPackages or model.hasFulfilledPickups %}
         {% block order-packages %}
                 <div class="mz-order-returns">

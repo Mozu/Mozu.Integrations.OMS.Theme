@@ -48,11 +48,8 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                 var self = this;
                 if (this.collection.parent) {
                     return this.collection.parent.getOrder().get('explodedItems').find(function(model) {
-                        if (self.get('actualPrice') !== 0 && model.get('Type') === 'BundleItem') {
-                           return false;
-                        }
-                        if (model.get('productCode')) {
-                            return self.get('productCode') === model.get('productCode');
+                        if (model.get('Type') === 'BundleItem') {
+                            return self.get('productCode') === model.get('productCode') && self.get('customData').lineID === model.get('parentLineId') + '';
                         }
                         return self.get('productCode') === (model.get('product').get('variationProductCode') ? model.get('product').get('variationProductCode') : model.get('product').get('productCode'));
                     });
@@ -158,8 +155,7 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                         return !item.has('optionAttributeFQN');
                     }),
                     standardProductsGroup = _.groupBy(standardProducts, function(item) {
-                        return item.uniqueProductCode() + '#' + item.get('Type') + '#' + item.get('fulfillmentMethod') + '#' +
-                                item.get('fulfillmentLocationCode');
+                        return item.uniqueProductCode() + '#' + item.get('lineId') + '#' + item.get('parentLineId');
                     }),
                     productExtraGroup = {};
                 _.each(productExtras, function(extra, extraKey) {
@@ -439,6 +435,7 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                                         groupedItems[typeKey].splice(key, 1);
                                         return false;
                                     }
+
                                     item.set('quantity', item.get('quantity') - 1);
                                     return false;
                                 }
@@ -689,7 +686,7 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                     if (returns.length < 1) {
                         return null;
                     }
-                    return [ null, api.request('POST', 'oms/return', { returns: returns })];
+                    return [ null, api.request('POST', 'oms/return', { returns: returns, accountId: this.get('customerAccountId') })];
                 } else {
                     return [ errors, null ];
                 }

@@ -82,17 +82,15 @@
                 {% with ngOrder.getNonShippedItems as ngItems %}
                     {% for omsItem in model.nonShippedItems %}
                         {% for item in ngItems %}
-                            {% if omsItem.customData.lineID == item.lineId or omsItem.partNumber == item.productCode or omsItem.partNumber == item.product.productCode %}
-                                {% if item.Type == "BundleItem" and omsItem.actualPrice == 0 %}
-                                    {% if omsItem.customData.lineID == item.parentLineId %}
-                                        {% include "modules/my-account/my-account-product-bundle" with model=item quantity=omsItem.quantity %}
-                                    {% endif %}
-                                {% else %}
-                                    {% if omsItem.customData.ngOrderItemID == item.id %}
+                            {% if item.Type == "BundleItem" and omsItem.customData.lineID == item.parentLineId and omsItem.actualPrice == 0 and omsItem.partNumber == item.productCode %}
+                                {% include "modules/my-account/my-account-product-bundle" with model=item quantity=omsItem.quantity %}
+                            {% else %}
+                                {% if omsItem.customData.lineID == item.lineId %}
+                                    {% if omsItem.partNumber == item.product.productCode or omsItem.partNumber == item.product.variationProductCode %}
                                         {% include "modules/my-account/order-history-listing-item" with model=item quantity=omsItem.quantity %}
                                     {% endif %}
                                 {% endif %}
-                            {% endif %}
+                            {% endif%}
                         {% endfor %}
                     {% endfor %}
                 {% endwith %}

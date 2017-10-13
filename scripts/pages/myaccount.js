@@ -383,17 +383,19 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                             dataItem = data.items[k];
                             if (dataItem.orderItemId === shippedItem.ngOrderItemID && dataItem.productCode === shippedItem.productCode) {
                                 quantityReturnable = shippedItem.quantity - shippedItem.returnQuantity;
-                                if (dataItem.orderItemOptionAttributeFQN === undefined) {
-                                    dataItem.quantityReturnable += quantityReturnable;
+                                if (dataItem.orderItemOptionAttributeFQN) {
+                                    dataItem.quantityReturnable = 0;
                                 }
 
-                                if (dataItem.parentProductCode === undefined) {
-                                    if (dataItem.orderItemID === undefined) {
+                                if (!dataItem.parentProductCode) {
+                                    if (!dataItem.orderItemID) {
+                                        dataItem.quantityReturnable = quantityReturnable;
                                         dataItem.quantity = quantityReturnable;
                                         dataItem.shipmentID = shippedItem.shipmentID;
                                         dataItem.orderID = shippedItem.orderID;
                                         dataItem.orderItemID = shippedItem.orderItemID;
                                     } else {
+                                        dataItem.quantityReturnable += quantityReturnable;
                                         dataItem.quantity += ',' + quantityReturnable;
                                         dataItem.shipmentID += ',' + shippedItem.shipmentID;
                                         dataItem.orderID += ',' + shippedItem.orderID;
@@ -403,7 +405,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                                     for (a = 0; a < data.totalCount; a++) {
                                         mainBundleDataItem = data.items[a];
                                         if (dataItem.parentProductCode === mainBundleDataItem.productCode) {
-                                            if (mainBundleDataItem.components === undefined) {
+                                            if (!mainBundleDataItem.components) {
                                                 mainBundleDataItem.components = [];
                                             }
                                             mainBundleDataItem.components.push({
