@@ -219,6 +219,7 @@ module.exports = function (grunt) {
 
     grunt.registerTask('reset', [
         'mozusync:wipe',
+        'build',
         'mozusync:upload'
     ]);
 
