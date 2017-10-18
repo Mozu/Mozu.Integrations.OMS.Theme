@@ -424,6 +424,10 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                     _.each(packages, function(type, typeKey, typeList) {
                         _.each(type, function(myPackage, key, list) {
                             _.each(groupedItems[typeKey], function(item, key) {
+                                if (!item) {
+                                    return false;
+                                }
+
                                 if (item.uniqueProductCode() === myPackage.get('productCode')) {
                                     if (item.get('Type') === 'BundleItem' && myPackage.get('actualPrice') > 0) {
                                         return false;
