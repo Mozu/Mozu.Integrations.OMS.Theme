@@ -320,6 +320,14 @@
                             if(resetMessage) {
                                 me.parent.messages.reset(me.parent.get('messages'));
                             }
+
+                            //In order to resync our billing address with shipping.
+                            //Not a great fix, look into correcting.
+                            if(order.get('billingInfo').get('isSameBillingShippingAddress')) {
+                                order.get('billingInfo').get('billingContact').set(order.get('fulfillmentInfo').get('fulfillmentContact').toJSON());
+                                order.get('billingInfo').trigger('billingContactUpdate');
+                            }
+                            
                         });
                 }
             },
@@ -1063,7 +1071,8 @@
                 if(me.isPurchaseOrderEnabled()) {
                     me.set('paymentType', 'PurchaseOrder');
                     me.selectPaymentType(me, 'PurchaseOrder');
-                } else {
+                } else if(!me.get('paymentType', 'check')) {
+
                     me.set('paymentType', 'CreditCard');
                     me.selectPaymentType(me, 'CreditCard');
                     if (me.savedPaymentMethods() && me.savedPaymentMethods().length > 0) {
