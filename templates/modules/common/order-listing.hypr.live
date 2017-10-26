@@ -56,35 +56,37 @@
             {% endif %}
 
         </ul>
-        {% block attributes %}
-
+    {% block attributes %}
+        <ul class="mz-orderlisting-details-list">
         {% for attribute in model.attributes %}
-        {% with model.orderAttributeDefinitions|findwhere('attributeFQN', attribute.fullyQualifiedName) as attDef %}
-            {% if attDef and attribute.fullyQualifiedName !== "tenant~oms.orderIds" %}
-                {% with attribute.values|first as attributeVal %}
-                    <div class="mz-orderlisting-attribute">
-                        <span>{{ attDef.content.value }}</span>
-                        <div>
-                            {% if attDef.dataType === "DateTime" %}
-                                {{ attributeVal|date("F j, Y") }}
-                            {% else %}
-                                {% if attDef.dataType === "Bool" %}
-
-                                    {% if attributeVal == "true" || attributeVal == "True" %}
-                                    Yes
-                                    {% else %}
-                                    No
-                                    {% endif %}
+            {% with model.orderAttributeDefinitions|findwhere('attributeFQN', attribute.fullyQualifiedName) as attDef %}
+                {% if attDef and attribute.fullyQualifiedName !== "tenant~oms.orderIds" %}
+                    <li class="mz-orderlisting-details-item">
+                    {% with attribute.values|first as attributeVal %}
+                        <div class="mz-orderlisting-attribute">
+                            <span>{{ attDef.content.value }}</span>
+                            <div>
+                                {% if attDef.dataType === "DateTime" %}
+                                    {{ attributeVal|date("F j, Y") }}
                                 {% else %}
-                                    {{ attributeVal }}
+                                    {% if attDef.dataType === "Bool" %}
+                                        {% if attributeVal == "True" %}
+                                            Yes
+                                        {% else %}
+                                            No
+                                        {% endif %}
+                                    {% else %}
+                                        {{ attributeVal }}
+                                    {% endif %}
                                 {% endif %}
-                            {% endif %}
+                            </div>
                         </div>
-                    </div>
-                {% endwith %}
-            {% endif %}
-        {% endwith %}
+                    {% endwith %}
+                    </li>
+                {% endif %}
+            {% endwith %}
         {% endfor %}
+        </ul>
 
         {% endblock attributes %}
 
