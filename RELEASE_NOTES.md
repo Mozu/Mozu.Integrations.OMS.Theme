@@ -1,5 +1,9 @@
 # What's New
 
+### October 25, 2017
+Integrated major core theme changes involving multiship
+
+
 ### September 15, 2017
 Pagination and return fixes
 

@@ -76,14 +76,17 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                model: RMAItem 
             })
         },
+        defaults: {
+            returnType: 'Refund'
+        },
         validateActiveReturns: function(){
             var self = this,
             errors = [];
             this.get('items').each(function(item, key) {
                 item.validation = item._validation;
-                //if (item.get('isSelectedForReturn')){
+                if (item.get('isSelectedForReturn')){
                     if(!item.validate()) errors.push(item.validate());
-                //}
+                }
             });
             if(errors.length > 0) {
               return errors;  

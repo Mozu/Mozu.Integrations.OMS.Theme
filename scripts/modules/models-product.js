@@ -1,4 +1,4 @@
-﻿define(["modules/jquery-mozu", "underscore", "modules/backbone-mozu", "hyprlive", "modules/models-price", "modules/api",
+define(["modules/jquery-mozu", "underscore", "modules/backbone-mozu", "hyprlive", "modules/models-price", "modules/api",
     "hyprlivecontext"], function($, _, Backbone, Hypr, PriceModels, api,
         HyprLiveContext) {
 
@@ -14,7 +14,6 @@
 
 
     var ProductOption = Backbone.MozuModel.extend({
-        idAttribute: "attributeFQN",
         helpers: ['isChecked'],
         initialize: function() {
             var me = this;

@@ -1,13 +1,12 @@
 <div class="mz-itemlisting {% block module-classes %}{% endblock module-classes %}">
   {% block product-bunle-image %}
-    <div class="mz-itemlisting-thumb">
-    {% if model.product.imageUrl %}
-        <img class="mz-itemlisting-thumb-img" src="{% make_url "image" model.product with max=80 as_parameters %}" {% if model.product.imageAlternateText %}alt="{{ model.product.imageAlternateText }}"{% endif %} />
-    {% else %}
-        <img class="mz-itemlisting-thumb-img" style="opacity: 0" src="/resources/images/placeholder.png" {% if model.imageAlternateText %}alt="{{ model.imageAlternateText }}"{% endif %} />
-    {% endif %}
-    </div>
-    {% endblock product-bunle-image %}
+
+  <div class="mz-itemlisting-thumb">
+    <img class="mz-itemlisting-thumb-img" src="/resources/images/placeholder.png" {% if model.imageAlternateText %}alt="{{ model.imageAlternateText }}"{% endif %} />
+  </div>
+
+  {% endblock product-bunle-image %}
+
   {% block product-bunle-details %}
   <div class="mz-itemlisting-details">
     <span class="mz-itemlisting-title">{{ model.name }} {{ model.content.productName }}</span>
