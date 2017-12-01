@@ -29,4 +29,8 @@ The Mozu Oms Theme builds upon the Mozu Core Theme to support the integration.
     Gruntfile.js
     package-item-return-form.hypr.live
     myaccount.less
-
+    email.less
+    order-confirmation-v2.hypr.live
+    order-confirmation.hypr
+    email-order-summary-v2.hyper.live
+    email-order-summary.hypr.live

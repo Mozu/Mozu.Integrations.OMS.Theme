@@ -22,14 +22,24 @@
 
   {% for order in model.orders %}
     <div class="mz-email-section">
-      <div class="mz-container-header">
-        Customer Care Number: {{ order.orderNumber }} <small><a href="http://{{ domainName }}/user/order-status">{{ labels.checkOrderStatus }}</a><br/><br/></small>
-      </div>
-      <div class="mz-email-summary-container">
-        {% include "modules/common/email-order-summary-v2" with items=order.items fulfillmentInfo=order.fulfillmentInfo locations=model.locations %}
-      </div>
+        {% with order.attributes|findwhere("fullyQualifiedName", "tenant~oms.orderIds") as omsOrderIds %}
+        {% for value in omsOrderIds.values %}
+          {% with value|split("|") as omsOrders %}
+            {% for omsOrder in omsOrders %}
+              {% with omsOrder|split(":") as orderProps %}
+                  <div class="mz-container-header">
+                      <span>Customer Care Number: {{ orderProps.0 }}</span>
+                      <span><small><a href="http://{{ domainName }}/user/order-status">{{ labels.checkOrderStatus }}</a><br/><br/></small></span>
+                  </div>
+                  <div class="mz-email-summary-container">
+                    {% include "modules/common/email-order-summary-v2" with items=order.items fulfillmentInfo=order.fulfillmentInfo locations=model.locations fulfillmentMethod=orderProps.1 pickupCode=orderProps.2 %}
+                  </div>
+              {% endwith %}
+            {% endfor %}
+          {% endwith %}
+        {% endfor %}
+        {% endwith %}
     </div>
-
   {% endfor %}
   <!-- -->
 
