@@ -168,6 +168,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                 });
                 orderHistoryListingView.render();
             });
+            this.listenTo(this.model, "change:pageSize", _.bind(this.model.changePageSize, this.model));
         },
         selectReturnItems: function() {
             if (typeof this.returning == 'object') {
@@ -301,6 +302,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                    self.views()[viewName].render();
                }
             });
+            this.$el.find('[data-mz-action="startOrderReturn"]').prop('disabled', true);
         }
     });
 
@@ -381,17 +383,19 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                             dataItem = data.items[k];
                             if (dataItem.orderItemId === shippedItem.ngOrderItemID && dataItem.productCode === shippedItem.productCode) {
                                 quantityReturnable = shippedItem.quantity - shippedItem.returnQuantity;
-                                if (dataItem.orderItemOptionAttributeFQN === undefined) {
-                                    dataItem.quantityReturnable += quantityReturnable;
+                                if (dataItem.orderItemOptionAttributeFQN) {
+                                    dataItem.quantityReturnable = 0;
                                 }
 
-                                if (dataItem.parentProductCode === undefined) {
-                                    if (dataItem.orderItemID === undefined) {
+                                if (!dataItem.parentProductCode) {
+                                    if (!dataItem.orderItemID) {
+                                        dataItem.quantityReturnable = quantityReturnable;
                                         dataItem.quantity = quantityReturnable;
                                         dataItem.shipmentID = shippedItem.shipmentID;
                                         dataItem.orderID = shippedItem.orderID;
                                         dataItem.orderItemID = shippedItem.orderItemID;
                                     } else {
+                                        dataItem.quantityReturnable += quantityReturnable;
                                         dataItem.quantity += ',' + quantityReturnable;
                                         dataItem.shipmentID += ',' + shippedItem.shipmentID;
                                         dataItem.orderID += ',' + shippedItem.orderID;
@@ -401,7 +405,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                                     for (a = 0; a < data.totalCount; a++) {
                                         mainBundleDataItem = data.items[a];
                                         if (dataItem.parentProductCode === mainBundleDataItem.productCode) {
-                                            if (mainBundleDataItem.components === undefined) {
+                                            if (!mainBundleDataItem.components) {
                                                 mainBundleDataItem.components = [];
                                             }
                                             mainBundleDataItem.components.push({
@@ -440,7 +444,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                             if ($(val).data('mzOptionAttributeFqn')) {
                                 return (model.get('orderItemOptionAttributeFQN') === $(val).data('mzOptionAttributeFqn') && model.uniqueProductCode() === $(val).data('mzProductCode'));
                             }
-                            return (model.uniqueProductCode() === $(val).data('mzProductCode'));
+                            return (model.uniqueProductCode() === $(val).data('mzProductCode') + "");
                         }
                         return false;
                     });
@@ -453,30 +457,77 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
 
                 _.invoke(returnItemViews, 'render');
 
+                if (self.model.getReturnableItems().length === 1) {
+                    var singleCheckbox = self.$el.find('[data-mz-value="isSelectedForReturn"]');
+                    singleCheckbox.click();
+                    singleCheckbox.css('visibility', 'hidden');
+                }
             });
 
         },
         clearOrderReturn: function() {
             this.model.clearReturn();
-            this.$el.find('[data-mz-value="isSelectedForReturn"]:checked').click();
+
         },
         cancelOrderReturn: function() {
             this.clearOrderReturn();
             this.trigger('returnCancel');
         },
         finishOrderReturn: function() {
-            var self = this,
-                op = this.model.finishReturn();
+            var self = this;
+
+            var op = this.model.finishReturn();
             if (op) {
-                return op.then(function(data) {
+                if (op[0] !== null) {
+                    var errors = op[0];
+                    var returnItems = self.$('[data-mz-order-history-listing-return-item]');
+                    var numReturnItems = returnItems.length;
+                    for (var i = 0; i < numReturnItems; i++) {
+                        var returnItem = returnItems[i];
+
+                        $(returnItem).find('[data-mz-validationmessage-for="rmaReason"]').hide();
+                        $(returnItem).find('[data-mz-validationmessage-for="rmaReason"]').hide();
+                        $(returnItem).find('[data-mz-validationmessage-for="rmaQuantity"]').hide();
+
+                        var numAttributes = returnItem.attributes.length;
+                        for (var k = 0; k < numAttributes; k++) {
+                            if (returnItem.attributes[k].name === 'data-mz-order-line-id') {
+                                var itemErrors = errors[returnItem.attributes[k].value];
+                                if (typeof(itemErrors) !== 'undefined') {
+                                    var numItemErrors = itemErrors.length;
+                                    for (var j = 0; j < numItemErrors; j++) {
+                                        var itemError = itemErrors[j];
+                                        if (itemError === 'rmaReason') {
+                                            $(returnItem).find('[data-mz-validationmessage-for="rmaReason"]').show().text(Hypr.getLabel('enterReturnReason'));
+                                            continue;
+                                        }
+                                        if (itemError === 'rmaComments') {
+                                            $(returnItem).find('[data-mz-validationmessage-for="rmaReason"]').show().text(Hypr.getLabel('enterOtherComments'));
+                                            continue;
+                                        }
+                                        if (itemError === 'rmaQuantity') {
+                                            $(returnItem).find('[data-mz-validationmessage-for="rmaQuantity"]').show().text(Hypr.getLabel('enterReturnQuantity'));
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                    }
+
                     self.model.isLoading(false);
-                    self.clearOrderReturn();
-                    self.trigger('returnSuccess');
-                }, function() {
-                    self.model.isLoading(false);
-                    self.clearOrderReturn();
-                    this.trigger('returnFailure');
-                });
+                    //this.trigger('returnFailure');
+                } else {
+                    return op[1].then(function (data) {
+                        window.location.reload(true);
+                    }, function () {
+                        self.model.isLoading(false);
+                        self.clearOrderReturn();
+                        self.trigger('returnFailure');
+                    });
+                }
+            } else {
+                self.model.isLoading(false);
             }
         }
     });
@@ -508,7 +559,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
 
                 this.model.set('isSelectedForReturn', true);
                 this.model.startReturn();
-                this.render();
+                //this.render();
             }
         },
         render: function() {
@@ -594,23 +645,41 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
         }
     });
 
-    //var scrollBackUp = _.debounce(function () {
-    //    $('#orderhistory').ScrollTo({ axis: 'y', offsetTop: Hypr.getThemeSetting('gutterWidth') });
-    //}, 100);
-    //var OrderHistoryPageNumbers = PagingViews.PageNumbers.extend({
-    //    previous: function () {
-    //        var op = PagingViews.PageNumbers.prototype.previous.apply(this, arguments);
-    //        if (op) op.then(scrollBackUp);
-    //    },
-    //    next: function () {
-    //        var op = PagingViews.PageNumbers.prototype.next.apply(this, arguments);
-    //        if (op) op.then(scrollBackUp);
-    //    },
-    //    page: function () {
-    //        var op = PagingViews.PageNumbers.prototype.page.apply(this, arguments);
-    //        if (op) op.then(scrollBackUp);
-    //    }
-    //});
+    var scrollBackUp = _.debounce(function () {
+        $('#orderhistory').ScrollTo({ axis: 'y', offsetTop: Hypr.getThemeSetting('gutterWidth') });
+    }, 100);
+    var OrderHistoryPageNumbers = PagingViews.PageNumbers.extend({
+        previous: function () {
+            var op = PagingViews.PageNumbers.prototype.previous.apply(this, arguments);
+            if (op) op.then(scrollBackUp);
+        },
+        next: function () {
+            var op = PagingViews.PageNumbers.prototype.next.apply(this, arguments);
+            if (op) op.then(scrollBackUp);
+        },
+        page: function () {
+            var op = PagingViews.PageNumbers.prototype.page.apply(this, arguments);
+            if (op) op.then(scrollBackUp);
+        }
+    });
+
+    var scrollBackUpReturns = _.debounce(function () {
+        $('#returnhistory').ScrollTo({ axis: 'y', offsetTop: Hypr.getThemeSetting('gutterWidth') });
+    }, 100);
+    var ReturnHistoryPageNumbers = PagingViews.PageNumbers.extend({
+        previous: function () {
+            var op = PagingViews.PageNumbers.prototype.previous.apply(this, arguments);
+            if (op) op.then(scrollBackUpReturns);
+        },
+        next: function () {
+            var op = PagingViews.PageNumbers.prototype.next.apply(this, arguments);
+            if (op) op.then(scrollBackUpReturns);
+        },
+        page: function () {
+            var op = PagingViews.PageNumbers.prototype.page.apply(this, arguments);
+            if (op) op.then(scrollBackUpReturns);
+        }
+    });
 
     var PaymentMethodsView = EditableView.extend({
         templateName: "modules/my-account/my-account-paymentmethods",
@@ -802,7 +871,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                 el: $orderHistoryEl.find('[data-mz-pagingcontrols]'),
                 model: orderHistory
             }),
-            orderHistoryPageNumbers: new PagingViews.PageNumbers({
+            orderHistoryPageNumbers: new OrderHistoryPageNumbers({
                 el: $orderHistoryEl.find('[data-mz-pagenumbers]'),
                 model: orderHistory
             }),
@@ -815,7 +884,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                 el: $returnHistoryEl.find('[data-mz-pagingcontrols]'),
                 model: returnHistory
             }),
-            returnHistoryPageNumbers: new PagingViews.PageNumbers({
+            returnHistoryPageNumbers: new ReturnHistoryPageNumbers({
                 el: $returnHistoryEl.find('[data-mz-pagenumbers]'),
                 model: returnHistory
             }),

@@ -1,14 +1,14 @@
-﻿# Mozu Oms Theme
+﻿﻿# Mozu Oms Theme
 
 The Mozu Oms Theme builds upon the Mozu Core Theme to support the integration.
 
 ## New files:
-    return.js
     order-history-omsorderlisting.hypr.live
 
 ## Modified files:
     en-US.json
     model-orders.js
+    models-returns.js
     myaccount.js
     order-listing.less
     order-listing.hypr.live
@@ -24,4 +24,7 @@ The Mozu Oms Theme builds upon the Mozu Core Theme to support the integration.
     return-history-listing.hypr.live
     my-account.hypr
     page.hypr
+    backbone-mozu-pagedcollection.js
+    email-order-summary.hypr.live
+    Gruntfile.js
 

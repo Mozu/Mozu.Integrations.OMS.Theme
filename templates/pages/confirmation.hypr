@@ -29,6 +29,7 @@
             </div>
         </div>
         {% endif %}
+        <!--
         {% for item in model.items %}
         {% if item.fulfillmentMethod == "Pickup" %}
         <div class="mz-l-stack-section">
@@ -40,6 +41,7 @@
         </div>
         {% endif %}
         {% endfor %}
+        -->
 
         <div class="mz-l-stack-section">
             <h4 class="mz-l-stack-sectiontitle">{{ labels.payments }}</h4>

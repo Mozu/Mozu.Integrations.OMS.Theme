@@ -59,7 +59,7 @@
 
 <div class="mz-l-formfieldgroup-cell">
     <div class="mz-itemlisting-rmaitem-details">
-        <h3>{{ labels.returnDetails }}</h3>
+        <h3>{{ labels.returnReason }}</h3>
         <dl class="mz-propertylist">
             {% for r in model.reasons %}
             <dd>{{ r.reason }}</dd>
@@ -70,10 +70,11 @@
             {% for c in model.notes %}
             <dd>{{ c.text }}</dd>
             {% endfor %}
+        </dl>
 
-            {% if model.returnType %}
-            <dd class="return-type"><strong>{{ labels.returnTypeRequested|string_format(model.returnType) }}</strong></dd>
-            {% endif %}
+        <h3>{{ labels.returnStatus }}</h3>
+        <dl class="mz-propertylist">
+            <dd>{{ model.status }}</dd>
         </dl>
     </div>
 </div>

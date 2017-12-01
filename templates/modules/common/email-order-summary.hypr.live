@@ -22,7 +22,7 @@
                       {% endif %}
                     </td>
                     <td>{{ item.quantity }}</td>
-                    <td align="right"> {% include "modules/common/email-item-price" %}</td>
+                    <td align="left"> {% include "modules/common/email-item-price" %}</td>
                     <td align="right"> {% include "modules/common/email-item-total" %}</td>
                 </tr>
             </tbody>
@@ -67,7 +67,7 @@
             <tr class="mz-ordersummary-shippingtotal">
               <td align="right" colspan="4">
                 <span class="mz-ordersummary-totalname">{{ labels.shippingHandling }}:</span>
-                <span class="mz-ordersummary-totalvalue">{{ model.shippingTotal|currency }}</span>
+                <span class="mz-ordersummary-totalvalue">{{ model.shippingSubTotal|currency }}</span>
               </td>
             </tr>
             {% for shippingDiscount in model.shippingDiscounts %}

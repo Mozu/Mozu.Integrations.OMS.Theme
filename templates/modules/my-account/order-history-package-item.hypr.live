@@ -4,14 +4,10 @@
 		{% endblock order-package-item-header %}
 
 		{% block order-package-item %}
-                {% if model.getProductDetails.Type == "BundleItem" and model.subtotal == 0  %}
-                    {% if model.optionAttributeFQN %}
-                        {% include "modules/my-account/my-account-product-bundle" with model=model.getProductDetails quantity=packageItem.quantity %}
-                    {% else %}
-                        {% include "modules/my-account/my-account-product-bundle" with model=model.getProductDetails quantity=packageItem.quantity %}
-                    {% endif %}
+                {% if product.Type == "BundleItem" and model.subtotal == 0  %}
+                    {% include "modules/my-account/my-account-product-bundle" with model=product quantity=packageItem.quantity %}
 			    {% else %}
-				    {% include "modules/my-account/order-history-listing-item" with model=model.getProductDetails quantity=packageItem.quantity %}
+				    {% include "modules/my-account/order-history-listing-item" with model=product quantity=packageItem.quantity %}
 			    {% endif %}
 
 		{% endblock order-package-item %}	

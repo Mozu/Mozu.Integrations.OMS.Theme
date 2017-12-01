@@ -2,16 +2,6 @@
   <div class="mz-l-formfieldgroup">
   <div class="mz-l-formfieldgroup-row">
     <div class="mz-l-formfieldgroup-cell">
-      <div class="mz-returnform-returntype">
-          <label class="mz-returnform-label">{{ labels.returnType }}</label>
-          <div class="mz-returnform-field">
-            <label>
-              <input type="radio" value="Refund" name="rmaReturnType_{{model.productCode}}_{{model.orderLineId}}" data-mz-value="rmaReturnType" checked="checked"/> {{ labels.refund }} </label>
-            <label>
-              <input type="radio" value="Replace" name="rmaReturnType_{{model.productCode}}_{{model.orderLineId}}" data-mz-value="rmaReturnType" /> {{ labels.replace }} </label>
-          </div>
-      </div>
-
       <div class="mz-returnform-reason">
           <label class="mz-returnform-label">{{ labels.reasonForReturn }}<span class="is-required"> *</span>:</label>
           <div class="mz-returnform-field">
@@ -61,5 +51,6 @@
     </div>
     {% endblock item-return-actions %}
 
+  </div>
   </div>
 </div>

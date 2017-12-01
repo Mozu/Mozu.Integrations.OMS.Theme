@@ -9,7 +9,8 @@
 					<h3 class="mz-package-status-heading">{{ labels.orderPackageFulfilled|string_format(model.formatedFulfillmentDate) }}</h3>
 					{% if model.trackingNumber %}
 						<div class="mz-package-status-tracking">
-							<span class="mz-package-status-tracking" data-mz-tracking-number="{{ item.trackingNumber }}" data-mx-shipping-code="{{ item.shippingMethodCode }}" data-mx-shipping-name="{{ item.shippingMethodName }}">{{ labels.trackingNumber }}: {{ model.trackingNumber }}</span>
+							<span class="mz-package-status-tracking" data-mz-tracking-number="{{ item.trackingNumber }}" data-mx-shipping-code="{{ item.shippingMethodCode }}" data-mx-shipping-name="{{ item.shippingMethodName }}">{{ labels.trackingNumber }}:
+                                <a target="_blank" href="{{ model.trackingURL }}">{{ model.trackingNumber }}</a></span>
 						</div>
 					{% endif %}
 				{% endif %}
@@ -19,13 +20,11 @@
 	<div class="mz-order-package-items">
 		{% block order-package-items %}
 			{% for packageItem in model.items %}
-                {% if packageItem.getProductDetails.Type == "BundleItem" %}
-                    {% include "modules/my-account/order-history-package-item" with model=packageItem %}
-                {% else %}
+                {% with packageItem.getProductDetails as productDetails %}
                     {% if packageItem.notBundle %}
-                        {% include "modules/my-account/order-history-package-item" with model=packageItem %}
+                        {% include "modules/my-account/order-history-package-item" with model=packageItem product=productDetails %}
                     {% endif %}
-                {% endif %}
+                {% endwith %}
 			{% endfor %}
 		{% endblock order-package-items %}
 	</div>

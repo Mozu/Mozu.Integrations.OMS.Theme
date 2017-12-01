@@ -1,5 +1,15 @@
 # What's New
 
+### September 15, 2017
+Pagination and return fixes
+
+* Fixed order history pagination
+* Fixed return history pagination
+* Added back parts of core theme returns to improve performance
+* Returning one item doesn't show a checkbox
+* Split up return status and return reason in return history return item details
+
+
 ### August 04, 2017
 Various bug fixes for my account
 

@@ -7,34 +7,34 @@
     "modules/backbone-mozu-validation"], function ($, _, api, Backbone, MessageModels) {
 
 
-        var $window = $(window),
-            Model = Backbone.Model,
-           Collection = Backbone.Collection;
+    var $window = $(window),
+        Model = Backbone.Model,
+        Collection = Backbone.Collection;
 
-        // Detects dot notation in named properties and deepens a flat object to respect those property names.
-        // Pessimistically, prefers dot-notated properties over properly deep ones
-        function deepen(obj) {
-            var ret = {};
-            _.each(obj, function (val, key) {
-                var ctx = ret, level;
-                key = key.split('.');
-                while (key.length > 1) {
-                    level = key.shift();
-                    ctx = ctx[level] || (ctx[level] = {});
-                }
-                ctx[key[0]] = val;
-            });
-            return ret;
-        }
+    // Detects dot notation in named properties and deepens a flat object to respect those property names.
+    // Pessimistically, prefers dot-notated properties over properly deep ones
+    function deepen(obj) {
+        var ret = {};
+        _.each(obj, function (val, key) {
+            var ctx = ret, level;
+            key = key.split('.');
+            while (key.length > 1) {
+                level = key.shift();
+                ctx = ctx[level] || (ctx[level] = {});
+            }
+            ctx[key[0]] = val;
+        });
+        return ret;
+    }
 
-        var methodMap = {
-            'read': 'get',
-            'delete': 'del'
-        };
+    var methodMap = {
+        'read': 'get',
+        'delete': 'del'
+    };
 
-        var modelProto = _.extend({}, Backbone.Validation.mixin,
+    var modelProto = _.extend({}, Backbone.Validation.mixin,
 
-            /** @lends MozuModel.prototype */
+        /** @lends MozuModel.prototype */
         {
             /**
              * @classdesc Extends the BackboneJS Model object to create a Backbone.MozuModel with extra features for model nesting, error handling, validation, and connection to the JavaScript SDK.
@@ -193,7 +193,7 @@
                 if (!key && key !== 0) return this;
 
                 containsPrice = new RegExp('price', 'i');
-                
+
                 // Remove any properties from the current model 
                 // where there are properties no longer present in the latest api model.
                 // This is to fix an issue when sale price is only on certain configurations or volume price bands, 
@@ -466,122 +466,122 @@
             }
         });
 
-        // we have to attach the constructor to the prototype via direct assignment,
-        // because iterative extend methods don't work on the 'constructor' property
-        // in IE8
+    // we have to attach the constructor to the prototype via direct assignment,
+    // because iterative extend methods don't work on the 'constructor' property
+    // in IE8
 
-        modelProto.constructor = function(conf) {
-            this.helpers = (this.helpers || []).concat(['isLoading', 'isValid']);
-            Backbone.Model.apply(this, arguments);
-            if (this.mozuType) this.initApiModel(conf);
-            if (this.handlesMessages) {
-                this.initMessages();
-            } else {
-                this.passErrors();
-            }
-        };
+    modelProto.constructor = function(conf) {
+        this.helpers = (this.helpers || []).concat(['isLoading', 'isValid']);
+        Backbone.Model.apply(this, arguments);
+        if (this.mozuType) this.initApiModel(conf);
+        if (this.handlesMessages) {
+            this.initMessages();
+        } else {
+            this.passErrors();
+        }
+    };
 
 
-        var MozuModel = Backbone.MozuModel = Backbone.Model.extend(modelProto, {
-            /**
-             * Create a mozuModel from any preloaded JSON present for this type.
-             * @example
-             *     var Product = Backbone.MozuModel.extend({
+    var MozuModel = Backbone.MozuModel = Backbone.Model.extend(modelProto, {
+        /**
+         * Create a mozuModel from any preloaded JSON present for this type.
+         * @example
+         *     var Product = Backbone.MozuModel.extend({
              *         mozuType: 'product'
              *     });
-             *     
-             *     // the fromCurrent static factory method is a shortcut for a common pattern.
-             *     var thisProduct = Product.fromCurrent();
-             *     
-             *     // the above is equivalent to:
-             *     var thisProduct = new Product(require.mozuData('product'));
-             * @memberof MozuModel
-             * @static
-             */
-            fromCurrent: function () {
-                return new this(require.mozuData(this.prototype.mozuType), { silent: true, parse: true });
+         *
+         *     // the fromCurrent static factory method is a shortcut for a common pattern.
+         *     var thisProduct = Product.fromCurrent();
+         *
+         *     // the above is equivalent to:
+         *     var thisProduct = new Product(require.mozuData('product'));
+         * @memberof MozuModel
+         * @static
+         */
+        fromCurrent: function () {
+            return new this(require.mozuData(this.prototype.mozuType), { silent: true, parse: true });
+        },
+        DataTypes: {
+            "Int": function (val) {
+                val = parseInt(val, 10);
+                return isNaN(val) ? 0 : val;
             },
-            DataTypes: {
-                "Int": function (val) {
-                    val = parseInt(val, 10);
-                    return isNaN(val) ? 0 : val;
-                },
-                "Float": function (val) {
-                    val = parseFloat(val);
-                    return isNaN(val) ? 0 : val;
-                },
-                "Boolean": function (val) {
-                    return typeof val === "string" ? val.toLowerCase() === "true" : !!val;
-                }
+            "Float": function (val) {
+                val = parseFloat(val);
+                return isNaN(val) ? 0 : val;
+            },
+            "Boolean": function (val) {
+                return typeof val === "string" ? val.toLowerCase() === "true" : !!val;
             }
-        });
-
-        function flattenValidation(proto, into, prefix) {
-            _.each(proto.validation, function (val, key) {
-                into[prefix + key] = val;
-            });
-            if (!proto.__validationFlattened) {
-                _.each(proto.relations, function (val, key) {
-                    flattenValidation(val.prototype, into, key + '.');
-                });
-            }
-            proto.__validationFlattened = true;
-            return into;
         }
+    });
 
-        Backbone.MozuModel.extend = function (conf, statics) {
-            if (conf) conf.validation = flattenValidation(conf, {}, '');
-            if (conf && conf.mozuType) {
-                // reflect all methods
-                var actions = api.getAvailableActionsFor(conf.mozuType);
-                if (actions) _.each(actions, function (actionName) {
-                    var apiActionName = "api" + actionName.charAt(0).toUpperCase() + actionName.substring(1);
-                    if (!(apiActionName in conf)) {
-                        conf[apiActionName] = function (data) {
-                            var self = this;
-                            // include self by default...
-                            if (actionName in { 'create': true, 'update': true }) data = data || this.toJSON();
-                            if (typeof data === "object" && !$.isArray(data) && !$.isPlainObject(data)) data = null;
-                            this.syncApiModel();
-                            this.isLoading(true);
-                            var p = this.apiModel[actionName](data);
-                            p.ensure(function () {
-                                self.isLoading(false);
-                            });
-                            return p;
-                        };
-                    }
-                });
-
-            }
-            var ret = Backbone.Model.extend.call(this, conf, statics);
-            if (conf && conf.helpers && conf.helpers.length > 0 && this.prototype.helpers && this.prototype.helpers.length > 0) ret.prototype.helpers = _.union(this.prototype.helpers, conf.helpers);
-            return ret;
-        };
-
-        Backbone.Collection.prototype.resetRelations = function (options) {
-            _.each(this.models, function(model) {
-                _.each(model.relations, function(rel, key) {
-                    if (model.get(key) instanceof Backbone.Collection) {
-                        model.get(key).trigger('reset', model, options);
-                    }
-                });
+    function flattenValidation(proto, into, prefix) {
+        _.each(proto.validation, function (val, key) {
+            into[prefix + key] = val;
+        });
+        if (!proto.__validationFlattened) {
+            _.each(proto.relations, function (val, key) {
+                flattenValidation(val.prototype, into, key + '.');
             });
-        };
+        }
+        proto.__validationFlattened = true;
+        return into;
+    }
 
-        Backbone.Collection.prototype.reset = function (models, options) {
-            options = options || {};
-            for (var i = 0, l = this.models.length; i < l; i++) {
-                this._removeReference(this.models[i]);
-            }
-            options.previousModels = this.models;
-            this._reset();
-            this.add(models, _.extend({ silent: true }, options));
-            if (!options.silent) {
-                this.trigger('reset', this, options);
-                this.resetRelations(options);
-            }
-            return this;
-        };
-        return Backbone;
+    Backbone.MozuModel.extend = function (conf, statics) {
+        if (conf) conf.validation = flattenValidation(conf, {}, '');
+        if (conf && conf.mozuType) {
+            // reflect all methods
+            var actions = api.getAvailableActionsFor(conf.mozuType);
+            if (actions) _.each(actions, function (actionName) {
+                var apiActionName = "api" + actionName.charAt(0).toUpperCase() + actionName.substring(1);
+                if (!(apiActionName in conf)) {
+                    conf[apiActionName] = function (data) {
+                        var self = this;
+                        // include self by default...
+                        if (actionName in { 'create': true, 'update': true }) data = data || this.toJSON();
+                        if (typeof data === "object" && !$.isArray(data) && !$.isPlainObject(data)) data = null;
+                        this.syncApiModel();
+                        this.isLoading(true);
+                        var p = this.apiModel[actionName](data);
+                        p.ensure(function () {
+                            self.isLoading(false);
+                        });
+                        return p;
+                    };
+                }
+            });
+
+        }
+        var ret = Backbone.Model.extend.call(this, conf, statics);
+        if (conf && conf.helpers && conf.helpers.length > 0 && this.prototype.helpers && this.prototype.helpers.length > 0) ret.prototype.helpers = _.union(this.prototype.helpers, conf.helpers);
+        return ret;
+    };
+
+    Backbone.Collection.prototype.resetRelations = function (options) {
+        _.each(this.models, function(model) {
+            _.each(model.relations, function(rel, key) {
+                if (model.get(key) instanceof Backbone.Collection) {
+                    model.get(key).trigger('reset', model, options);
+                }
+            });
+        });
+    };
+
+    Backbone.Collection.prototype.reset = function (models, options) {
+        options = options || {};
+        for (var i = 0, l = this.models.length; i < l; i++) {
+            this._removeReference(this.models[i]);
+        }
+        options.previousModels = this.models;
+        this._reset();
+        this.add(models, _.extend({ silent: true }, options));
+        if (!options.silent) {
+            this.trigger('reset', this, options);
+            this.resetRelations(options);
+        }
+        return this;
+    };
+    return Backbone;
 });

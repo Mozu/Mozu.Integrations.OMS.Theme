@@ -49,9 +49,7 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
         },
         toJSON: function () {
             var j = Backbone.MozuModel.prototype.toJSON.apply(this, arguments);
-            if(j.rmaReturnType) {
-              j.returnType = j.rmaReturnType;
-            }
+            j.returnType = 'Refund';
             if (j && j.rmaReason && j.rmaQuantity) {
                     j.reasons = [
                     {
@@ -68,7 +66,6 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
             delete j.rmaReason;
             delete j.rmaQuantity;
             delete j.rmaComments;
-            delete j.rmaReturnType;
             return j;
         }
     }),
@@ -79,17 +76,14 @@ define(["modules/api", 'underscore', "modules/backbone-mozu", "hyprlive", "modul
                model: RMAItem 
             })
         },
-        defaults: {
-            returnType: 'Refund'
-        },
         validateActiveReturns: function(){
             var self = this,
             errors = [];
             this.get('items').each(function(item, key) {
                 item.validation = item._validation;
-                if (item.get('isSelectedForReturn')){
+                //if (item.get('isSelectedForReturn')){
                     if(!item.validate()) errors.push(item.validate());
-                }
+                //}
             });
             if(errors.length > 0) {
               return errors;  

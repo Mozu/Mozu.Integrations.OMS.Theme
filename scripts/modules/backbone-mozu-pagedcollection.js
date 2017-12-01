@@ -2,7 +2,8 @@
     "jquery",
     "underscore",
     "hyprlive",
-    "modules/backbone-mozu-model"], function ($, _, Hypr, Backbone) {
+    "modules/api",
+    "modules/backbone-mozu-model"], function ($, _, Hypr, api, Backbone) {
 
         var defaultPageSize = Hypr.getThemeSetting('defaultPageSize'),
             defaultSort = Hypr.getThemeSetting('defaultSort'),
@@ -87,13 +88,65 @@
 
             previousPage: function() {
                 try {
-                    return this.apiModel.prevPage(this.lastRequest);
+                    var self = this;
+                    var type = self.apiModel.type;
+                    var newPage;
+                    var body = {
+                        startIndex: parseInt(self.get('startIndex'),10) - parseInt(self.get('pageSize'),10),
+                        pageSize: self.get('pageSize')
+                    };
+
+                    if (type === 'orders') {
+                        newPage = api.request('POST', 'oms/orderHistory', {
+                            orderHistory: body
+                        });
+                    } else if (type === 'rmas') {
+                        newPage = api.request('POST', 'oms/returnHistory', {
+                            customerAttributes: self.parent.apiModel.data.attributes,
+                            returnHistory: body
+                        });
+                    } else {
+                        return this.apiModel.prevPage(this.lastRequest);
+                    }
+
+                    return newPage.then(function (data) {
+                        self._isSyncing = true;
+                        self.set(data);
+                        self._isSyncing = false;
+                        self.trigger('sync', data);
+                    }), newPage;
                 } catch (e) { }
             },
 
             nextPage: function() {
                 try {
-                    return this.apiModel.nextPage(this.lastRequest);
+                    var self = this;
+                    var type = self.apiModel.type;
+                    var newPage;
+                    var body = {
+                        startIndex: parseInt(self.get('startIndex'),10) + parseInt(self.get('pageSize'),10),
+                        pageSize: self.get('pageSize')
+                    };
+
+                    if (type === 'orders') {
+                        newPage = api.request('POST', 'oms/orderHistory', {
+                            orderHistory: body
+                        });
+                    } else if (type === 'rmas') {
+                        newPage = api.request('POST', 'oms/returnHistory', {
+                            customerAttributes: self.parent.apiModel.data.attributes,
+                            returnHistory: body
+                        });
+                    } else {
+                        return this.apiModel.nextPage(this.lastRequest);
+                    }
+
+                    return newPage.then(function (data) {
+                        self._isSyncing = true;
+                        self.set(data);
+                        self._isSyncing = false;
+                        self.trigger('sync', data);
+                    }), newPage;
                 } catch (e) { }
             },
 
@@ -109,11 +162,67 @@
 
             setPage: function(num) {
                 num = parseInt(num, 10);
-                if (num != this.currentPage() && num <= parseInt(this.get('pageCount'), 10)) return this.apiModel.setIndex((num - 1) * parseInt(this.get('pageSize'), 10), this.lastRequest);
+                if (num != this.currentPage() && num <= parseInt(this.get('pageCount'), 10)) {
+                    var self = this;
+                    var type = self.apiModel.type;
+                    var newIndex = (num - 1) * parseInt(self.get('pageSize'), 10);
+                    var newPage;
+                    var body = {
+                        startIndex: newIndex,
+                        pageSize: self.get('pageSize')
+                    };
+
+                    if (type === 'orders') {
+                        newPage = api.request('POST', 'oms/orderHistory', {
+                            orderHistory: body
+                        });
+                    } else if (type === 'rmas') {
+                        newPage = api.request('POST', 'oms/returnHistory', {
+                            customerAttributes: self.parent.apiModel.data.attributes,
+                            returnHistory: body
+                        });
+                    } else {
+                        return this.apiModel.setIndex((num - 1) * parseInt(this.get('pageSize'), 10), this.lastRequest);
+                    }
+
+                    return newPage.then(function (data) {
+                        self._isSyncing = true;
+                        self.set(data);
+                        self._isSyncing = false;
+                        self.trigger('sync', data);
+                    }), newPage;
+                }
             },
 
             changePageSize: function() {
-                return this.apiGet($.extend(this.lastRequest, { pageSize: this.get('pageSize') }));
+                var newPageSize = this.get('pageSize');
+                var self = this;
+                var type = self.apiModel.type;
+                var newPage;
+                var body = {
+                    startIndex: 0,
+                    pageSize: newPageSize
+                };
+
+                if (type === 'orders') {
+                    newPage = api.request('POST', 'oms/orderHistory', {
+                        orderHistory: body
+                    });
+                } else if (type === 'rmas') {
+                    newPage = api.request('POST', 'oms/returnHistory', {
+                        customerAttributes: self.parent.apiModel.data.attributes,
+                        returnHistory: body
+                    });
+                } else {
+                    return this.apiGet($.extend(this.lastRequest, { pageSize: this.get('pageSize') }));
+                }
+
+                return newPage.then(function (data) {
+                    self._isSyncing = true;
+                    self.set(data);
+                    self._isSyncing = false;
+                    self.trigger('sync', data);
+                });
             },
 
             firstIndex: function() {

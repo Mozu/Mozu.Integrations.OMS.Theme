@@ -141,7 +141,7 @@
             return j;
         },
         addConfiguration: function(biscuit, options) {
-            var fqn, value, attributeDetail, valueKey, pushConfigObject;
+            var fqn, value, attributeDetail, valueKey, pushConfigObject, optionName;
             if (this.isConfigured()) {
                 if (options && options.unabridged) {
                     biscuit.push(this.toJSON());
@@ -149,11 +149,13 @@
                     fqn = this.get('attributeFQN');
                     value = this.getValueOrShopperEnteredValue();
                     attributeDetail = this.get('attributeDetail');
+                    optionName = attributeDetail.name;
                     valueKey = attributeDetail.valueType === ProductOption.Constants.ValueTypes.ShopperEntered ? "shopperEnteredValue" : "value";
                     if (attributeDetail.dataType === "Number") value = parseFloat(value);
                     pushConfigObject = function(val) {
                         var o = {
-                            attributeFQN: fqn
+                            attributeFQN: fqn,
+                            name: optionName
                         };
                         o[valueKey] = val;
                         biscuit.push(o);
@@ -329,19 +331,21 @@
                 if (!me.validate()) {
                     me.apiAddToWishlist({
                         customerAccountId: require.mozuData('user').accountId,
-                        quantity: me.get("quantity")
+                        quantity: me.get("quantity"),
+                        options: me.getConfiguredOptions()
                     }).then(function(item) {
                         me.trigger('addedtowishlist', item);
                     });
                 }
             });
         },
-        addToCartForPickup: function(locationCode, quantity) {
+        addToCartForPickup: function(locationCode, locationName, quantity) {
             var me = this;
             this.whenReady(function() {
                 return me.apiAddToCartForPickup({
                     fulfillmentLocationCode: locationCode,
                     fulfillmentMethod: Product.Constants.FulfillmentMethods.PICKUP,
+                    fulfillmentLocationName: locationName,
                     quantity: quantity || 1
                 }).then(function(item) {
                     me.trigger('addedtocart', item);
@@ -441,5 +445,3 @@
     };
 
 });
-
-

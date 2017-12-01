@@ -45,47 +45,55 @@
     <div class="mz-orderlisting-items mz-l-formfieldgroup">
         {% block order-items %}
         <div class="order-history-listing">
-            {% if model.deliveryMethod === "SHIP_TO_HOME" and model.numShipments> 0 %}
-            <h2 class="mz-orderlisting-heading">{{labels.shipped}}</h2>
-            <div class="data-mz-order-packages">
-                {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.packages orderID=model.orderID %}
-            </div>
-            {% endif %}
+            {% if model.status !== "CANCELED" and model.numShipments > 0 %}
+                {% if model.deliveryMethod === "SHIP_TO_HOME" %}
+                <h2 class="mz-orderlisting-heading">{{labels.shipped}}</h2>
+                <div class="data-mz-order-packages">
+                    {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.packages orderID=model.orderID %}
+                </div>
+                {% endif %}
 
-            {% if model.deliveryMethod === "IN_STORE_PICKUP" and model.numShipments > 0 %}
-            <h2 class="mz-orderlisting-heading">{{labels.orderItemsPickup}}</h2>
-            <div class="mz-orderlisting-pickup">
-                {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.pickups orderID=model.orderID %}
-            </div>
-            {% endif %}
+                {% if model.deliveryMethod === "IN_STORE_PICKUP" %}
+                <h2 class="mz-orderlisting-heading">{{labels.orderItemsPickup}}</h2>
+                <div class="mz-orderlisting-pickup">
+                    {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.pickups orderID=model.orderID %}
+                </div>
+                {% endif %}
 
-            {% if model.deliveryMethod === "DIGITAL" and model.numShipments > 0 %}
-            <h2 class="mz-orderlisting-heading">{{labels.orderDigitalItems}}</h2>
-            <div class="mz-orderlisting-pickup">
-                {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.digitalPackages orderID=model.orderID %}
-            </div>
+                {% if model.deliveryMethod === "DIGITAL" %}
+                <h2 class="mz-orderlisting-heading">{{labels.orderDigitalItems}}</h2>
+                <div class="mz-orderlisting-pickup">
+                    {% include "modules/my-account/order-history-package-group" with model=ngOrder packages=ngOrder.digitalPackages orderID=model.orderID %}
+                </div>
+                {% endif %}
             {% endif %}
 
             {% if model.nonShippedItems.length > 0 %}
                 {% if model.status === "CANCELED" %}
                     <h2 class="mz-orderlisting-heading">{{labels.orderCanceled}}</h2>
                 {% else %}
-                    <h2 class="mz-orderlisting-heading">{{labels.orderItemsNotShipped}}</h2>
+                    {% if model.deliveryMethod === "IN_STORE_PICKUP" and model.status === "READY" %}
+                        <h2 class="mz-orderlisting-heading">{{labels.pickupReady}}</h2>
+                    {% else %}
+                        <h2 class="mz-orderlisting-heading">{{labels.orderItemsNotShipped}}</h2>
+                    {% endif %}
                 {% endif %}
             <div class="mz-orderlisting-nonShipped">
-                {% for omsItem in model.nonShippedItems %}
-                    {% for item in ngOrder.getNonShippedItems %}
-                        {% if omsItem.partNumber == item.product.productCode or omsItem.partNumber == item.productCode %}
-                            {% if item.Type == "BundleItem" and omsItem.actualPrice == 0 %}
+                {% with ngOrder.getNonShippedItems as ngItems %}
+                    {% for omsItem in model.nonShippedItems %}
+                        {% for item in ngItems %}
+                            {% if item.Type == "BundleItem" and omsItem.customData.lineID == item.parentLineId and omsItem.actualPrice == 0 and omsItem.partNumber == item.productCode %}
                                 {% include "modules/my-account/my-account-product-bundle" with model=item quantity=omsItem.quantity %}
                             {% else %}
-                                {% if omsItem.customData.ngOrderItemID == item.id %}
-                                    {% include "modules/my-account/order-history-listing-item" with model=item quantity=omsItem.quantity %}
+                                {% if omsItem.customData.lineID == item.lineId %}
+                                    {% if omsItem.partNumber == item.product.productCode or omsItem.partNumber == item.product.variationProductCode %}
+                                        {% include "modules/my-account/order-history-listing-item" with model=item quantity=omsItem.quantity %}
+                                    {% endif %}
                                 {% endif %}
-                            {% endif %}
-                        {% endif %}
+                            {% endif%}
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
+                {% endwith %}
             </div>
             {% endif %}
         </div>
