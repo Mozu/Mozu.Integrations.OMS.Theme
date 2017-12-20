@@ -336,6 +336,7 @@ define(['modules/backbone-mozu', "modules/api", 'hyprlive', 'hyprlivecontext', '
                 var dataItem2;
                 for (var w = 0; w < data.totalCount; w++) {
                     dataItem1 = data.items[w];
+                    dataItem1.quantityReturnable = 0;
                     for (x = 0; x < data.totalCount; x++) {
                         dataItem2 = data.items[x];
                         if (x !== w) {
