@@ -1,12 +1,21 @@
-*.class
+# Mac Crap
+.DS*
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# Zip files
+*.zip
 
-# Package Files #
-*.jar
-*.war
-*.ear
+# Merge originals
+*.orig
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# Node-specific
+node_modules/
+
+/npm-debug.log
+
+/compiled/
+.yo-rc.json
+mozu.config.json
+
+# WebStorm project files
+.idea/
+
