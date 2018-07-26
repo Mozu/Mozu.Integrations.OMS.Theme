@@ -1,14 +1,15 @@
-require(["modules/jquery-mozu", 
-    "underscore", "hyprlive", 
-    "modules/backbone-mozu", 
-    "modules/models-checkout", 
-    "modules/views-messages", 
-    "modules/cart-monitor", 
-    'hyprlivecontext', 
-    'modules/editable-view', 
+require(["modules/jquery-mozu",
+    "underscore", "hyprlive",
+    "modules/backbone-mozu",
+    "modules/models-checkout",
+    "modules/views-messages",
+    "modules/cart-monitor",
+    'hyprlivecontext',
+    'modules/editable-view',
     'modules/preserve-element-through-render',
-    'modules/xpress-paypal'], 
-    function ($, _, Hypr, Backbone, CheckoutModels, messageViewFactory, CartMonitor, HyprLiveContext, EditableView, preserveElements,PayPal) {
+    'modules/xpress-paypal',
+    'modules/amazonpay'],
+    function ($, _, Hypr, Backbone, CheckoutModels, messageViewFactory, CartMonitor, HyprLiveContext, EditableView, preserveElements,PayPal,AmazonPay) {
 
 
     var CheckoutStepView = EditableView.extend({
@@ -68,7 +69,7 @@ require(["modules/jquery-mozu",
         editCart: function () {
             window.location =  (HyprLiveContext.locals.siteContext.siteSubdirectory||'') + "/cart";
         },
-        
+
         onOrderCreditChanged: function (order, scope) {
             this.render();
         },
@@ -117,7 +118,7 @@ require(["modules/jquery-mozu",
     });
 
     var poCustomFields = function() {
-        
+
         var fieldDefs = [];
 
         var isEnabled = HyprLiveContext.locals.siteContext.checkoutSettings.purchaseOrder &&
@@ -167,7 +168,9 @@ require(["modules/jquery-mozu",
             'creditAmountToApply',
             'digitalCreditCode',
             'purchaseOrder.purchaseOrderNumber',
-            'purchaseOrder.paymentTerm'
+            'purchaseOrder.paymentTerm',
+            'giftCardNumber',
+            'giftCardSecurityCode'
         ].concat(poCustomFields()),
         renderOnChange: [
             'billingContact.address.countryCode',
@@ -179,6 +182,8 @@ require(["modules/jquery-mozu",
         additionalEvents: {
             "change [data-mz-digital-credit-enable]": "enableDigitalCredit",
             "change [data-mz-digital-credit-amount]": "applyDigitalCredit",
+            "change [data-mz-gift-card-amount]": "applyGiftCard",
+            "change [data-mz-gift-card-enable]": "enableGiftCard",
             "change [data-mz-digital-add-remainder-to-customer]": "addRemainderToCustomer",
             "change [name='paymentType']": "resetPaymentData",
             "change [data-mz-purchase-order-payment-term]": "updatePurchaseOrderPaymentTerm"
@@ -186,6 +191,8 @@ require(["modules/jquery-mozu",
 
         initialize: function () {
             // this.addPOCustomFieldAutoUpdate();
+            this.listenTo(this.model, 'change:giftCardNumber', this.onEnterGiftCardInfo, this);
+            this.listenTo(this.model, 'change:giftCardSecurityCode', this.onEnterGiftCardInfo, this);
             this.listenTo(this.model, 'change:digitalCreditCode', this.onEnterDigitalCreditCode, this);
             this.listenTo(this.model, 'orderPayment', function (order, scope) {
                     this.render();
@@ -291,6 +298,13 @@ require(["modules/jquery-mozu",
                 self.$el.removeClass('is-loading');
             });
         },
+        getGatewayGiftCard: function (e) {
+            var self = this;
+            this.$el.addClass('is-loading');
+            this.model.getGatewayGiftCard().ensure(function() {
+                 self.$el.removeClass('is-loading');
+             });
+        },
         stripNonNumericAndParseFloat: function (val) {
             if (!val) return 0;
             var result = parseFloat(val.replace(/[^\d\.]/g, ''));
@@ -304,10 +318,33 @@ require(["modules/jquery-mozu",
                 return;
             }
             var amtToApply = this.stripNonNumericAndParseFloat(val);
-            
+
             this.model.applyDigitalCredit(creditCode, amtToApply, true);
             this.render();
         },
+        applyGiftCard: function(e) {
+            var self = this,
+                val = $(e.currentTarget).prop('value'),
+                giftCardId = $(e.currentTarget).attr('data-mz-gift-card-target');
+            if (!giftCardId) {
+              return;
+            }
+            var amtToApply = this.stripNonNumericAndParseFloat(val);
+            this.$el.addClass('is-loading');
+            return this.model.applyGiftCard(giftCardId, amtToApply, true).then(function(){
+                self.$el.removeClass('is-loading');
+                this.render();
+            }, function(error){
+                self.$el.removeClass('is-loading');
+            });
+        },
+        onEnterGiftCardInfo: function(model) {
+            if (model.get('giftCardNumber') && model.get('giftCardSecurityCode')){
+              this.$el.find('input#gift-card-security-code').siblings('button').prop('disabled', false);
+            } else {
+              this.$el.find('input#gift-card-security-code').siblings('button').prop('disabled', true);
+            }
+          },
         onEnterDigitalCreditCode: function(model, code) {
             if (code && !this.codeEntered) {
                 this.codeEntered = true;
@@ -333,6 +370,20 @@ require(["modules/jquery-mozu",
                 me.render();
             }
         },
+        enableGiftCard: function(e){
+            var isEnabled = $(e.currentTarget).prop('checked') === true,
+                giftCardId = $(e.currentTarget).attr('data-mz-payment-id'),
+                targetAmtEl = this.$el.find("input[data-mz-gift-card-target='" + giftCardId + "']"),
+                me = this;
+
+            if (isEnabled) {
+              targetAmtEl.prop('disabled', false);
+              me.model.applyGiftCard(giftCardId, null, true);
+            } else {
+              targetAmtEl.prop('disabled', true);
+              me.model.applyGiftCard(giftCardId, 0, false);
+            }
+        },
         addRemainderToCustomer: function (e) {
             var creditCode = $(e.currentTarget).attr('data-mz-credit-code-to-tie-to-customer'),
                 isEnabled = $(e.currentTarget).prop('checked') === true;
@@ -346,6 +397,20 @@ require(["modules/jquery-mozu",
                     return this.applyDigitalCredit(e);
                 case "digitalCreditCode":
                     return this.getDigitalCredit(e);
+                case "giftCardNumber":
+                    if (this.model.get('giftCardNumber') && this.model.get('giftCardSecurityCode')){
+                        return this.getGatewayGiftCard(e);
+                    } else {
+                        //TODO: trigger error message
+                    }
+                    break;
+                case "giftCardSecurityCode":
+                    if (this.model.get('giftCardNumber') && this.model.get('giftCardSecurityCode')){
+                        return this.getGatewayGiftCard(e);
+                    } else {
+                        //TODO: trigger error message
+                    }
+                    break;
             }
         },
         /* begin visa checkout */
@@ -369,7 +434,7 @@ require(["modules/jquery-mozu",
                 me.model.parent.processDigitalWallet('VisaCheckout', payment);
             });
 
-          
+
 
             window.V.init({
                 apikey: apiKey,
@@ -386,7 +451,7 @@ require(["modules/jquery-mozu",
     var CouponView = Backbone.MozuView.extend({
         templateName: 'modules/checkout/coupon-code-field',
         handleLoadingChange: function (isLoading) {
-            // override adding the isLoading class so the apply button 
+            // override adding the isLoading class so the apply button
             // doesn't go loading whenever other parts of the order change
         },
         initialize: function () {
@@ -514,7 +579,7 @@ require(["modules/jquery-mozu",
         conf.el.css('opacity',1);
         if (mask) mask.remove();
       }
-      conf.model.on('refresh', killMask); 
+      conf.model.on('refresh', killMask);
       conf.model.on('error', killMask);
       return conf;
     };
@@ -525,6 +590,9 @@ require(["modules/jquery-mozu",
 
         var $checkoutView = $('#checkout-form'),
             checkoutData = require.mozuData('checkout');
+
+        AmazonPay.init(true);
+        checkoutData.isAmazonPayEnable = AmazonPay.isEnabled;
 
         var checkoutModel = window.order = new CheckoutModels.CheckoutPage(checkoutData),
             checkoutViews = {
@@ -558,7 +626,7 @@ require(["modules/jquery-mozu",
                     el: $('#comments-field'),
                     model: checkoutModel
                 }),
-                
+
                 reviewPanel: new ReviewOrderView({
                     el: $('#step-review'),
                     model: checkoutModel
@@ -582,7 +650,7 @@ require(["modules/jquery-mozu",
                 setTimeout(function () { window.scrollTo(0, $reviewPanel.offset().top); }, 750);
             }
         });
- 
+
         _.invoke(checkoutViews.steps, 'initStepView');
 
         $checkoutView.noFlickerFadeIn();
